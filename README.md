@@ -1,7 +1,7 @@
 # Pi-r2 0.1
 
 * NodeJS 16 LTS
-* ES2020
+* ES2021
 
 ## General Usage
 
@@ -17,6 +17,7 @@
 ## Cloud
 
 * [@pi-r/ibm](https://www.ibm.com/cloud/free)
+* [@pi-r/minio](https://min.io)
 
 ## Image
 

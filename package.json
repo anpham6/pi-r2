@@ -78,6 +78,7 @@
     "gifwrap": "*",
     "ibm-cos-sdk": "^1.13.4",
     "jimp": "^1.6.0",
+    "minio": "^7.1.3",
     "sqd-admin": "^0.15.10",
     "sqd-build": "^0.4.0",
     "sqd-eslint": "0.6.0",

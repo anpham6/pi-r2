@@ -14,6 +14,7 @@ import type { Document, PostPartitionAllDocsParams, PostPartitionFindParams } fr
 import ibm = require('ibm-cloud-sdk-core');
 import cloudant = require('@ibm-cloud/cloudant');
 import cloudant_v1 = require('@ibm-cloud/cloudant/cloudant/v1');
+
 import types = require('@e-mc/types');
 import aws = require('@pi-r/aws');
 

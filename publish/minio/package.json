@@ -1,15 +1,15 @@
 {
-  "name": "@pi-r2/jimp",
-  "version": "0.1.0",
-  "description": "Jimp V1 image constructor for E-mc.",
-  "main": "index.js",
+  "name": "@pi-r/minio",
+  "version": "0.8.3",
+  "description": "Minio storage functions for E-mc.",
+  "main": "client/index.js",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/anpham6/pi-r2.git",
-    "directory": "src/module/jimp"
+    "directory": "src/cloud/minio"
   },
   "keywords": [
     "squared",
@@ -19,11 +19,9 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/image": "^0.10.3",
+    "@e-mc/cloud": "^0.10.3",
+    "@e-mc/module": "^0.10.3",
     "@e-mc/types": "^0.10.3",
-    "@jimp/utils": "*",
-    "bmp-js": "^0.1.0",
-    "gifwrap": "^0.10.1",
-    "jimp": "^1.6.0"
+    "minio": "^7.1.3"
   }
 }

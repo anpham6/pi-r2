@@ -1,7 +1,7 @@
 {
     "extends": "../../tsconfig.json",
     "compilerOptions": {
-      "outDir": "../../publish/ibm",
+      "outDir": "../../publish",
     },
     "include": [
       "**/*.ts"

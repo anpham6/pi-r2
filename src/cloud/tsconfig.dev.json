@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.build.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "../../build/cloud.tsbuildinfo"
+  },
+  "include": [
+    "**/*.ts"
+  ],
+  "exclude": []
+}
