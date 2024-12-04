@@ -33,7 +33,7 @@ const BUCKET_RESPONSE: ObjectMap<Promise<boolean>> = {};
 
 const getBucketKey = (credential: unknown, bucket: string, acl = '') => Cloud.asString(credential, true) + bucket + '_' + acl;
 
-export = function upload(this: IModule, credential: MinIOStorageCredential, service: string): UploadCallback {
+function upload(this: IModule, credential: MinIOStorageCredential, service: string): UploadCallback {
     const minio = client.createStorageClient.call(this, credential);
     return async (data: UploadData<ItemBucketMetadata, ObjectCannedACL, unknown, MinIOPolicyType, LockConfig, unknown, LifecycleConfig>, callback) => {
         const { bucket: bucketName, localUri } = data;
@@ -231,4 +231,6 @@ export = function upload(this: IModule, credential: MinIOStorageCredential, serv
             });
         }
     };
-};
+}
+
+export = upload;

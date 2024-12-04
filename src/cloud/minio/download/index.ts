@@ -22,7 +22,7 @@ type ResultCallback<T> = (error: Error | null, result: T) => void;
 type GetObject = (bucketName: string, objectName: string, getOpts: AnyObject, cb: ResultCallback<Readable>) => void;
 type RemoveObject = (bucketName: string, objectName: string, removeOpts: AnyObject, cb: NoResultCallback) => void;
 
-export = function download(this: IModule, credential: MinIOStorageCredential, service: string): DownloadCallback {
+function download(this: IModule, credential: MinIOStorageCredential, service: string): DownloadCallback {
     const minio = client.createStorageClient.call(this, credential);
     return (data: DownloadData<RemoveOptions>, callback) => {
         const { bucket: bucketName, download: target } = data;
@@ -56,4 +56,6 @@ export = function download(this: IModule, credential: MinIOStorageCredential, se
             }
         });
     };
-};
+}
+
+export = download;

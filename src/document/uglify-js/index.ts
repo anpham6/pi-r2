@@ -26,7 +26,7 @@ const MINIFY_PROPS = [
     'wrap'
 ];
 
-export = function transform(context: typeof uglify, value: string, options: ITransformSeries<uglify.MinifyOptions>) {
+function transform(context: typeof uglify, value: string, options: ITransformSeries<uglify.MinifyOptions>) {
     const { sourceMap, supplementChunks } = options;
     const baseConfig = options.toBaseConfig();
     let url: string | undefined;
@@ -67,4 +67,6 @@ export = function transform(context: typeof uglify, value: string, options: ITra
         }
         return result.code;
     }
-};
+}
+
+export = transform;
