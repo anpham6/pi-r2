@@ -1,0 +1,26 @@
+{
+  "name": "@pi-r/svgo",
+  "version": "0.8.3",
+  "description": "SVGO transform function for E-mc.",
+  "main": "index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anpham6/pi-r2.git",
+    "directory": "src/document/svgo"
+  },
+  "keywords": [
+    "squared",
+    "e-mc"
+  ],
+  "author": "An Pham <anpham6@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/anpham6/pi-r2#readme",
+  "dependencies": {
+    "@e-mc/document": "^0.10.4",
+    "@e-mc/types": "^0.10.4",
+    "svgo": "^3.3.2"
+  }
+}

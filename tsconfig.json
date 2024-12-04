@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "es2021",
+    "module": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "@pi-r2/jimp/*": ["src/module/jimp/*"]
+    },
+    "newLine": "lf",
+    "inlineSourceMap": false,
+    "noUnusedLocals": true,
+    "preserveConstEnums": false,
+    "alwaysStrict": true,
+    "strictBindCallApply": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": false,
+    "noImplicitOverride": false,
+    "useUnknownInCatchVariables": true,
+    "allowUnreachableCode": false,
+    "allowUmdGlobalAccess": false,
+    "removeComments": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "publish/**/*.d.ts"
+  ],
+  "exclude": [
+    "build/**/*",
+    "node_modules/**/*",
+    "publish/**/*.js"
+  ]
+}

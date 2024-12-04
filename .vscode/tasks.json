@@ -1,0 +1,30 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "gitCommitAmendNoEdit",
+            "type": "shell",
+            "command": "git commit --amend --no-edit && git push --force-with-lease origin 0.1.0"
+        },
+        {
+            "label": "gitPushBranchForce",
+            "type": "shell",
+            "command": "git push --force-with-lease origin 0.1.0"
+        },
+        {
+            "label": "npmOutdated",
+            "type": "shell",
+            "command": "npm outdated"
+        },
+        {
+            "label": "npmPrune",
+            "type": "shell",
+            "command": "npm prune"
+        },
+        {
+            "label": "npmDevBuild",
+            "type": "shell",
+            "command": "npm run build"
+        }
+    ]
+}

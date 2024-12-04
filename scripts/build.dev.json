@@ -1,0 +1,11 @@
+{
+  "dir": "src",
+  "exec": "tsc",
+  "args": ["-b"],
+  "filename": "tsconfig.dev.json",
+  "all": false,
+  "worker": false,
+  "pipeline": [
+    ["document", "module"]
+  ]
+}

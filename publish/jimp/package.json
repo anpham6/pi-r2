@@ -1,0 +1,29 @@
+{
+  "name": "@pi-r2/jimp",
+  "version": "0.1.0",
+  "description": "Jimp image constructor for E-mc.",
+  "main": "index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anpham6/pi-r2.git",
+    "directory": "src/module/jimp"
+  },
+  "keywords": [
+    "squared",
+    "e-mc"
+  ],
+  "author": "An Pham <anpham6@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/anpham6/pi-r2#readme",
+  "dependencies": {
+    "@e-mc/image": "^0.10.3",
+    "@e-mc/types": "^0.10.3",
+    "@jimp/utils": "*",
+    "bmp-js": "^0.1.0",
+    "gifwrap": "^0.10.1",
+    "jimp": "^1.6.0"
+  }
+}
