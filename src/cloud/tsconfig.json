@@ -1,10 +1,10 @@
 {
-    "extends": "../../tsconfig.json",
-    "compilerOptions": {
-      "outDir": "../../publish",
-    },
-    "include": [
-      "**/*.ts"
-    ],
-    "exclude": []
-  }
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../build",
+  },
+  "include": [
+    "**/*.ts"
+  ],
+  "exclude": []
+}
