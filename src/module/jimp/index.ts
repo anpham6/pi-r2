@@ -23,7 +23,7 @@ import types = require('@e-mc/types');
 
 import { ERR_IMAGE, ERR_MESSAGE, LOG_TYPE } from '@e-mc/types/constant';
 
-import util = require('@pi-r2/jimp/util');
+import util = require('./util');
 
 const Image = require('@e-mc/image') as JimpImageConstructor<IFileManager>;
 
@@ -37,12 +37,6 @@ try {
 catch {
 }
 
-const enum STRINGS {
-    MODULE_NAME = 'jimp',
-    MIME_WEBP = 'image/webp',
-    TRANSFORM = 'Transforming image...'
-}
-
 interface CacheData {
     tempKey: string;
     tempFile: string;
@@ -50,6 +44,12 @@ interface CacheData {
     localFile?: string;
     mtimeMs?: number;
     size?: number;
+}
+
+const enum STRINGS {
+    MODULE_NAME = 'jimp',
+    MIME_WEBP = 'image/webp',
+    TRANSFORM = 'Transforming image...'
 }
 
 const CACHE_TRANSFORM: ObjectMap<CacheData> = {};
@@ -111,8 +111,7 @@ function getMethodName(value: string) {
 }
 
 async function performCommand(host: IHost | null, instance: Jimp, localUri: string, command: string, outputType: string, finalAs: string, buffer?: string | Buffer | null, parent?: ExternalAsset) {
-    const data = jimp.Jimp.read(buffer || localUri);
-    return data.then(async img => {
+    return jimp.Jimp.read(buffer || localUri).then(async img => {
         return await transformCommand(
             localUri,
             new JimpHandler(img as jimp.JimpInstance, instance, host),
@@ -290,166 +289,154 @@ const getJPEGOptions = (instance: Jimp) => instance.qualityData && instance.outp
 const emptyResult = <T>(options: TransformOptions) => (options.tempFile ? '' : null) as T;
 
 class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings>> {
-    private readonly _host: IHost | null = null;
-
     constructor(
         public handler: jimp.JimpInstance,
         public instance: Jimp,
-        host?: IHost | null) {
-        if (host) {
-            this._host = host;
-        }
+        private readonly _host: IHost | null = null) {
     }
 
     async rotate(localFile?: string, callback?: ResultCallback<string>) {
-        if (this.aborted) {
+        const data = this.instance.rotateData;
+        if (!data || this.aborted) {
             return this;
         }
-        const data = this.instance.rotateData;
-        if (data) {
-            const { values, color } = data;
-            const handler = this.handler;
-            if (!isNaN(color)) {
-                handler.background = color;
+        const { values, color } = data;
+        const handler = this.handler;
+        if (!isNaN(color)) {
+            handler.background = color;
+        }
+        const tasks: Promise<void>[] = [];
+        const length = values.length;
+        const deg = values[0];
+        if (length > 1 && localFile) {
+            const leading = localFile.substring(0, localFile.lastIndexOf('.') + 1);
+            const ext = path.extname(localFile);
+            for (let i = 1; i < length; ++i) {
+                const value = values[i];
+                const img = handler.clone().rotate(value);
+                const output = leading + value + ext;
+                tasks.push(
+                    img.write(output as "jimp.png")
+                        .then(() => {
+                            this.finalize(output, callback);
+                        })
+                        .catch((err: unknown) => {
+                            this.instance.writeFail([ERR_IMAGE.ROTATE, STRINGS.MODULE_NAME], err, LOG_TYPE.IMAGE);
+                        })
+                );
             }
-            const tasks: Promise<void>[] = [];
-            const length = values.length;
-            const deg = values[0];
-            if (length > 1 && localFile) {
-                const leading = localFile.substring(0, localFile.lastIndexOf('.') + 1);
-                const ext = path.extname(localFile);
-                for (let i = 1; i < length; ++i) {
-                    const value = values[i];
-                    const img = handler.clone().rotate(value);
-                    const output = leading + value + ext;
-                    tasks.push(
-                        img.write(output as "jimp.png")
-                            .then(() => {
-                                this.finalize(output, callback);
-                            })
-                            .catch((err: unknown) => {
-                                this.instance.writeFail([ERR_IMAGE.ROTATE, STRINGS.MODULE_NAME], err, LOG_TYPE.IMAGE);
-                            })
-                    );
-                }
-            }
-            if (deg) {
-                handler.rotate(deg);
-            }
-            if (tasks.length > 0) {
-                return Promise.all(tasks).then(() => this);
-            }
+        }
+        if (deg) {
+            handler.rotate(deg);
+        }
+        if (tasks.length > 0) {
+            return Promise.all(tasks).then(() => this);
         }
         return this;
     }
     async method() {
-        if (this.aborted) {
+        const data = this.instance.methodData;
+        if (!data || this.aborted) {
             return;
         }
-        const data = this.instance.methodData;
-        if (data) {
-            const handler = this.handler;
-            for (const [name, args = []] of data) {
-                try {
-                    const alias = getMethodName(name);
-                    if (!alias) {
-                        throw types.errorValue(ERR_IMAGE.METHOD_NAME, name);
-                    }
-                    switch (alias) {
-                        case 'composite': {
-                            const [src, x, y, opts] = args;
-                            if (types.isString(src) && typeof x === 'number' && typeof y === 'number') {
-                                handler.composite(await jimp.Jimp.read(src), x, y, opts as undefined);
-                            }
-                            else {
-                                throw types.errorValue(ERR_MESSAGE.PARAMETERS, alias);
-                            }
-                            break;
+        for (const [name, args = []] of data) {
+            try {
+                const alias = getMethodName(name);
+                if (!alias) {
+                    throw types.errorValue(ERR_IMAGE.METHOD_NAME, name);
+                }
+                switch (alias) {
+                    case 'composite': {
+                        const [src, x, y, opts] = args;
+                        if (types.isString(src) && typeof x === 'number' && typeof y === 'number') {
+                            this.handler.composite(await jimp.Jimp.read(src), x, y, opts as undefined);
                         }
-                        case 'background':
-                            this.background(args.length === 1 ? args[0] as number : args as [number, number, number, number]);
-                            break;
-                        default:
-                            (handler[alias] as FunctionType<jimp.JimpInstance>)(...args);
-                            break;
+                        else {
+                            throw types.errorValue(ERR_MESSAGE.PARAMETERS, alias);
+                        }
+                        break;
                     }
+                    case 'background':
+                        this.background(args.length === 1 ? args[0] as number : args as [number, number, number, number]);
+                        break;
+                    default:
+                        (this.handler[alias] as FunctionType<jimp.JimpInstance>)(...args);
+                        break;
                 }
-                catch (err) {
-                    this.instance.writeFail([ERR_MESSAGE.UNKNOWN, STRINGS.MODULE_NAME + ': ' + name], err, LOG_TYPE.IMAGE);
-                }
+            }
+            catch (err) {
+                this.instance.writeFail([ERR_MESSAGE.UNKNOWN, STRINGS.MODULE_NAME + ': ' + name], err, LOG_TYPE.IMAGE);
             }
         }
     }
     resize() {
-        if (this.aborted) {
+        const data = this.instance.resizeData;
+        if (!data || this.aborted) {
             return;
         }
-        const data = this.instance.resizeData;
-        if (data) {
-            const { width: w, height: h } = data;
-            const handler = this.handler;
-            if (!isNaN(data.color)) {
-                handler.background = data.color;
-            }
-            let align = 0;
-            switch (data.align[0]) {
-                case 'left':
-                    align |= jimp.HorizontalAlign.LEFT;
-                    break;
-                case 'center':
-                    align |= jimp.HorizontalAlign.CENTER;
-                    break;
-                case 'right':
-                    align |= jimp.HorizontalAlign.RIGHT;
-                    break;
-            }
-            switch (data.align[1]) {
-                case 'top':
-                    align |= jimp.VerticalAlign.TOP;
-                    break;
-                case 'middle':
-                    align |= jimp.VerticalAlign.MIDDLE;
-                    break;
-                case 'bottom':
-                    align |= jimp.VerticalAlign.BOTTOM;
-                    break;
-            }
-            switch (data.mode) {
-                case 'contain':
-                    handler.contain({ w, h, align });
-                    break;
-                case 'cover':
-                    handler.cover({ w, h, align });
-                    break;
-                case 'scale':
-                    handler.scaleToFit({ w, h });
-                    break;
-                default: {
-                    let mode: jimp.ResizeStrategy = jimp.ResizeStrategy.NEAREST_NEIGHBOR;
-                    switch (data.algorithm) {
-                        case 'bilinear':
-                            mode = jimp.ResizeStrategy.BILINEAR;
-                            break;
-                        case 'bicubic':
-                            mode = jimp.ResizeStrategy.BICUBIC;
-                            break;
-                        case 'hermite':
-                            mode = jimp.ResizeStrategy.HERMITE;
-                            break;
-                        case 'bezier':
-                            mode = jimp.ResizeStrategy.BEZIER;
-                            break;
-                    }
-                    const options = { mode } as jimp.ResizeOptions;
-                    if (w !== Infinity) {
-                        options.w = w;
-                    }
-                    if (h !== Infinity) {
-                        options.h = h;
-                    }
-                    handler.resize(options);
-                    break;
+        const { width: w, height: h } = data;
+        const handler = this.handler;
+        if (!isNaN(data.color)) {
+            handler.background = data.color;
+        }
+        let align = 0;
+        switch (data.align[0]) {
+            case 'left':
+                align |= jimp.HorizontalAlign.LEFT;
+                break;
+            case 'center':
+                align |= jimp.HorizontalAlign.CENTER;
+                break;
+            case 'right':
+                align |= jimp.HorizontalAlign.RIGHT;
+                break;
+        }
+        switch (data.align[1]) {
+            case 'top':
+                align |= jimp.VerticalAlign.TOP;
+                break;
+            case 'middle':
+                align |= jimp.VerticalAlign.MIDDLE;
+                break;
+            case 'bottom':
+                align |= jimp.VerticalAlign.BOTTOM;
+                break;
+        }
+        switch (data.mode) {
+            case 'contain':
+                handler.contain({ w, h, align });
+                break;
+            case 'cover':
+                handler.cover({ w, h, align });
+                break;
+            case 'scale':
+                handler.scaleToFit({ w, h });
+                break;
+            default: {
+                let mode: jimp.ResizeStrategy = jimp.ResizeStrategy.NEAREST_NEIGHBOR;
+                switch (data.algorithm) {
+                    case 'bilinear':
+                        mode = jimp.ResizeStrategy.BILINEAR;
+                        break;
+                    case 'bicubic':
+                        mode = jimp.ResizeStrategy.BICUBIC;
+                        break;
+                    case 'hermite':
+                        mode = jimp.ResizeStrategy.HERMITE;
+                        break;
+                    case 'bezier':
+                        mode = jimp.ResizeStrategy.BEZIER;
+                        break;
                 }
+                const options = { mode } as jimp.ResizeOptions;
+                if (w !== Infinity) {
+                    options.w = w;
+                }
+                if (h !== Infinity) {
+                    options.h = h;
+                }
+                handler.resize(options);
+                break;
             }
         }
     }
@@ -580,22 +567,15 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
                 });
         });
     }
-
     crop() {
-        if (this.aborted) {
-            return;
-        }
         const data = this.instance.cropData;
-        if (data) {
+        if (data && !this.aborted) {
             this.handler.crop({ x: data.x, y: data.y, w: data.width, h: data.height });
         }
     }
     opacity() {
-        if (this.aborted) {
-            return;
-        }
         const value = this.instance.opacityValue ?? NaN;
-        if (value >= 0) {
+        if (value >= 0 && !this.aborted) {
             this.handler.opacity(value);
         }
     }
@@ -759,9 +739,8 @@ class Jimp extends Image {
             const startTime = process.hrtime();
             const success = (result: string, ctimeMs?: number) => {
                 const filename = path.basename(result);
-                const document = file.document;
-                if (document) {
-                    host.writeImage(document, data.getObject<OutputFinalize<ExternalAsset>>({ command, output: result }));
+                if (file.document) {
+                    host.writeImage(file.document, data.getObject<OutputFinalize<ExternalAsset>>({ command, output: result }));
                 }
                 if (host.getLocalUri(data) !== result) {
                     if (command.includes('%')) {

@@ -1,8 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../publish/jimp",
-    "target": "es2022"
+    "outDir": "../../publish/jimp"
   },
   "include": [
     "**/*.ts"
