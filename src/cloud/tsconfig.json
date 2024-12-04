@@ -1,0 +1,10 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+      "outDir": "../../publish/ibm",
+    },
+    "include": [
+      "**/*.ts"
+    ],
+    "exclude": []
+  }

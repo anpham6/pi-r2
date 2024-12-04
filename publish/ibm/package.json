@@ -1,0 +1,30 @@
+{
+  "name": "@pi-r/ibm",
+  "version": "0.8.3",
+  "description": "IBM cloud functions for E-mc.",
+  "main": "client/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anpham6/pi-r2.git",
+    "directory": "src/cloud/ibm"
+  },
+  "keywords": [
+    "squared",
+    "e-mc"
+  ],
+  "author": "An Pham <anpham6@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/anpham6/pi-r2#readme",
+  "dependencies": {
+    "@e-mc/cloud": "^0.10.3",
+    "@e-mc/module": "^0.10.3",
+    "@e-mc/types": "^0.10.3",
+    "@pi-r/aws": "^0.8.3",
+    "@ibm-cloud/cloudant": "^0.11.0",
+    "ibm-cloud-sdk-core": "^5.1.0",
+    "ibm-cos-sdk": "^1.14.0"
+  }
+}

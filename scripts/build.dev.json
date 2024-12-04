@@ -6,6 +6,6 @@
   "all": false,
   "worker": false,
   "pipeline": [
-    ["document", "module"]
+    ["cloud", "document", "module"]
   ]
 }

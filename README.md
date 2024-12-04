@@ -14,6 +14,10 @@
 * [@pi-r/svgo](https://github.com/svg/svgo)
 * [@pi-r/uglify-js](https://github.com/mishoo/UglifyJS)
 
+## Cloud
+
+* [@pi-r/ibm](https://www.ibm.com/cloud/free)
+
 ## Image
 
 * [@pi-r2/jimp](https://github.com/jimp-dev/jimp)
