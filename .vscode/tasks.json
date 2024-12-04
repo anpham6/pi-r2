@@ -4,12 +4,12 @@
         {
             "label": "gitCommitAmendNoEdit",
             "type": "shell",
-            "command": "git commit --amend --no-edit && git push --force-with-lease origin 0.1.0"
+            "command": "git commit --amend --no-edit && git push --force-with-lease origin master"
         },
         {
             "label": "gitPushBranchForce",
             "type": "shell",
-            "command": "git push --force-with-lease origin 0.1.0"
+            "command": "git push --force-with-lease origin master"
         },
         {
             "label": "npmOutdated",

@@ -10,8 +10,22 @@ const enum STRINGS {
     MIME_WEBP = 'image/webp'
 }
 
-export const MIME_INPUT = new Set([jimp.JimpMime.png, jimp.JimpMime.jpeg, jimp.JimpMime.bmp, jimp.JimpMime.gif, jimp.JimpMime.tiff, STRINGS.MIME_WEBP as string]);
-export const MIME_OUTPUT = new Set([jimp.JimpMime.png, jimp.JimpMime.jpeg, jimp.JimpMime.bmp, jimp.JimpMime.gif, STRINGS.MIME_WEBP as string]);
+export const MIME_INPUT = new Set([
+    jimp.JimpMime.png,
+    jimp.JimpMime.jpeg,
+    jimp.JimpMime.bmp,
+    jimp.JimpMime.gif,
+    jimp.JimpMime.tiff,
+    STRINGS.MIME_WEBP as string
+]);
+
+export const MIME_OUTPUT = new Set([
+    jimp.JimpMime.png,
+    jimp.JimpMime.jpeg,
+    jimp.JimpMime.bmp,
+    jimp.JimpMime.gif,
+    STRINGS.MIME_WEBP as string
+]);
 
 export function parseFormat(command: string, mimeType?: string, gif?: boolean): [string, string, string] {
     command = command.toLowerCase();

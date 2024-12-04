@@ -111,10 +111,17 @@ function getMethodName(value: string) {
 }
 
 async function performCommand(host: IHost | null, instance: Jimp, localUri: string, command: string, outputType: string, finalAs: string, buffer?: string | Buffer | null, parent?: ExternalAsset) {
-    return await jimp.Jimp.read((buffer || localUri) as string)
-        .then(async img => {
-            return await transformCommand(localUri, new JimpHandler(img as jimp.JimpInstance, instance, host), command, outputType, finalAs, parent);
-        });
+    const data = jimp.Jimp.read(buffer || localUri);
+    return data.then(async img => {
+        return await transformCommand(
+            localUri,
+            new JimpHandler(img as jimp.JimpInstance, instance, host),
+            command,
+            outputType,
+            finalAs,
+            parent
+        );
+    });
 }
 
 function execOptions(settings: JimpSettings) {
@@ -279,8 +286,8 @@ function removeFile(pathname: string) {
 }
 
 const hasTransform = (cmd: CommandData) => !!(cmd.rotate || cmd.resize || cmd.crop || cmd.method || typeof cmd.opacity === 'number' && cmd.opacity >= 0 && cmd.opacity < 1);
-const getJpegOptions = (instance: Jimp) => instance.qualityData && instance.outputType === jimp.JimpMime.jpeg && !instance.outputAs ? { quality: instance.qualityData.value } : undefined;
-const emptyResult = <T extends TransformOptions>(options: TransformOptions) => (options.tempFile ? '' : null) as T extends { tempFile: true } ? string : Buffer | null;
+const getJPEGOptions = (instance: Jimp) => instance.qualityData && instance.outputType === jimp.JimpMime.jpeg && !instance.outputAs ? { quality: instance.qualityData.value } as jimp.JPEGOptions : undefined;
+const emptyResult = <T>(options: TransformOptions) => (options.tempFile ? '' : null) as T;
 
 class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings>> {
     private readonly _host: IHost | null = null;
@@ -360,10 +367,10 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
                             break;
                         }
                         case 'background':
-                            handler.background = args[0] as number;
+                            this.background(args.length === 1 ? args[0] as number : args as [number, number, number, number]);
                             break;
                         default:
-                            (handler[alias as "color"] as FunctionType<jimp.JimpInstance>)(...args);
+                            (handler[alias] as FunctionType<jimp.JimpInstance>)(...args);
                             break;
                     }
                 }
@@ -535,17 +542,17 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
         }
     }
     async getBuffer(tempFile?: boolean, saveAs?: string) {
-        const empty = () => tempFile ? '' : null;
+        const emptyData = () => tempFile ? '' : null;
         const output = getTempPath(this.instance, this.instance.outputAs || (saveAs && util.MIME_OUTPUT.has('image/' + (saveAs === 'jpg' ? 'jpeg' : saveAs)) ? saveAs : (this.handler.mime || this.instance.outputType).split('/').pop()!));
         if (!output) {
-            return empty();
+            return emptyData();
         }
         return new Promise<Bufferable | null>(resolve => {
-            this.handler.write(output as "jimp.jpg", getJpegOptions(this.instance))
+            this.handler.write(output as "jimp.jpg", getJPEGOptions(this.instance))
                 .then(() => {
                     this.finalize(output, (error, result) => {
                         if (error) {
-                            resolve(empty());
+                            resolve(emptyData());
                         }
                         else if (tempFile) {
                             resolve(output);
@@ -569,7 +576,7 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
                     });
                 })
                 .catch(() => {
-                    resolve(empty());
+                    resolve(emptyData());
                 });
         });
     }
@@ -580,7 +587,7 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
         }
         const data = this.instance.cropData;
         if (data) {
-            this.handler = this.handler.crop({ x: data.x, y: data.y, w: data.width, h: data.height }) as jimp.JimpInstance;
+            this.handler.crop({ x: data.x, y: data.y, w: data.width, h: data.height });
         }
     }
     opacity() {
@@ -589,7 +596,7 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
         }
         const value = this.instance.opacityValue ?? NaN;
         if (value >= 0) {
-            this.handler = this.handler.opacity(value) as jimp.JimpInstance;
+            this.handler.opacity(value);
         }
     }
     async write(output: string, callback?: ResultCallback<string>) {
@@ -599,7 +606,7 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
             }
             return;
         }
-        return this.handler.write(output as "jimp.jpg", getJpegOptions(this.instance))
+        return this.handler.write(output as "jimp.jpg", getJPEGOptions(this.instance))
             .then(() => {
                 this.finalize(output, callback);
             })
@@ -624,17 +631,17 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
 }
 
 class Jimp extends Image {
-    static override async transform<T extends TransformOptions>(file: string | Buffer, command: string, options: T = {} as T): Promise<T extends { tempFile: true } ? string : Buffer | null> {
+    static override async transform<T extends TransformOptions extends infer U ? U extends { tempFile: infer V } ? V extends true ? string : Buffer | null : never : never>(file: string | Buffer, command: string, options: TransformOptions = {}): Promise<T> {
         const [outputType, saveAs, finalAs] = util.parseFormat(command = command.trim(), options.mimeType);
         if (!outputType) {
-            return emptyResult<T>(options);
+            return emptyResult(options);
         }
         const instance = new Jimp(options.module);
         let buffer: Buffer | null = null;
         if (Buffer.isBuffer(file)) {
             const tempDir = TEMP_DIR || instance.getTempDir();
             if (!this.createDir(tempDir)) {
-                return emptyResult<T>(options);
+                return emptyResult(options);
             }
             try {
                 const { ext } = await this.resolveMime(file) || { ext: 'unknown' };
@@ -642,7 +649,7 @@ class Jimp extends Image {
                 fs.writeFileSync(file = path.join(tempDir, crypto.randomUUID() + '.' + ext), buffer);
             }
             catch {
-                return emptyResult<T>(options);
+                return emptyResult(options);
             }
             options.cache = false;
         }
@@ -671,7 +678,7 @@ class Jimp extends Image {
             [buffer, tempFile, ctimeMs] = getImageCache(instance, tempKey = file + command + (options.mimeType || ''));
             if (buffer) {
                 writeMessage(false, ctimeMs);
-                return buffer as T extends { tempFile: true } ? string : Buffer | null;
+                return buffer as T;
             }
         }
         instance.formatMessage(Image.LOG_TYPE.IMAGE, STRINGS.MODULE_NAME, [STRINGS.TRANSFORM, filename], command);
@@ -684,7 +691,7 @@ class Jimp extends Image {
                 if (result && tempKey && tempFile) {
                     setImageCache(instance, tempKey, tempFile, result, file);
                 }
-                return result as T extends { tempFile: true } ? string : Buffer | null;
+                return result as T;
             })
             .catch(() => {
                 return emptyResult<T>(options);
