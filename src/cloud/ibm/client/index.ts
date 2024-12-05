@@ -11,19 +11,18 @@ import type { S3 } from 'ibm-cos-sdk';
 import type { AuthenticatorInterface } from 'ibm-cloud-sdk-core';
 import type { Document, PostPartitionAllDocsParams, PostPartitionFindParams } from '@ibm-cloud/cloudant/cloudant/v1';
 
+import { ERR_DB, ERR_MESSAGE } from '@e-mc/types/constant';
+import { HTTP_STATUS } from '@e-mc/types/lib/http';
+
 import ibm = require('ibm-cloud-sdk-core');
 import cloudant = require('@ibm-cloud/cloudant');
 import cloudant_v1 = require('@ibm-cloud/cloudant/cloudant/v1');
-
-import types = require('@e-mc/types');
 import aws = require('@pi-r/aws');
 
 import Cloud = require('@e-mc/cloud');
 
-import { ERR_DB, ERR_MESSAGE } from '@e-mc/types/constant';
-import { HTTP_STATUS } from '@e-mc/types/lib/http';
-
-import util = require('@e-mc/cloud/util');
+import { STATUS_TYPE, isArray, isString } from '@e-mc/types';
+import { formatError } from '@e-mc/cloud/util';
 
 const enum STRINGS {
     SERVICE = 'ibm',
@@ -41,7 +40,7 @@ export function validateDatabase(credential: IBMDatabaseCredential, data: CloudD
     }
     const env = process.env;
     const serviceName = credential.serviceName || STRINGS.CLOUDANT;
-    const hasEnv = (attr: string, value?: string) => !value ? types.isString(env[serviceName + '_' + attr]) : value === env[serviceName + '_' + attr];
+    const hasEnv = (attr: string, value?: string) => !value ? isString(env[serviceName + '_' + attr]) : value === env[serviceName + '_' + attr];
     switch (env[serviceName + '_AUTH_TYPE']?.toLowerCase()) {
         case 'container':
             return hasEnv('IAM_PROFILE_NAME');
@@ -124,7 +123,7 @@ export function createDatabaseClient(this: IModule, credential: IBMDatabaseCrede
 }
 
 export async function createBucket(this: IModule, credential: IBMStorageCredential, bucket: string, publicRead?: boolean) {
-    return aws.createBucketV2.call(this, credential, bucket, publicRead ? 'public-read' : undefined, undefined, STRINGS.SERVICE, STRINGS.SDK);
+    return createBucketV2.call(this, credential, bucket, publicRead ? 'public-read' : undefined);
 }
 
 export async function createBucketV2(this: IModule, credential: IBMStorageCredential, bucket: string, ACL?: BucketCannedACL, options?: S3.CreateBucketRequest) {
@@ -139,13 +138,17 @@ export async function setBucketWebsite(this: IModule, credential: IBMStorageCred
     return aws.setBucketWebsite.call(this, credential, bucket, options, STRINGS.SERVICE, STRINGS.SDK);
 }
 
-export async function deleteObjects(this: IModule, credential: IBMStorageCredential, bucket: string) {
-    return deleteObjectsV2.call(this, credential, bucket, true);
+export async function deleteObjects(this: IModule, credential: IBMStorageCredential, Bucket: string, service?: string, sdk?: string, recursive = true) {
+    return deleteObjectsV2.call(this, credential, Bucket, recursive);
 }
 
-export async function deleteObjectsV2(this: IModule, credential: IBMStorageCredential, bucket: string, recursive = true) {
+export async function deleteObjectsV2(this: IModule, credential: IBMStorageCredential, Bucket: string, recursive = true) {
+    return deleteObjectsV3.call(this, credential, Bucket, { recursive, Bucket });
+}
+
+export async function deleteObjectsV3(this: IModule, credential: IBMStorageCredential, bucket: string, options = {} as aws.ListObjectsRequest) {
     setStorageCredential(credential);
-    return aws.deleteObjectsV2.call(this, credential, bucket, recursive, STRINGS.SERVICE, STRINGS.SDK);
+    return aws.deleteObjectsV3.call(this, credential, bucket, options, STRINGS.SERVICE, STRINGS.SDK);
 }
 
 export async function executeQuery(this: ICloud, credential: IBMDatabaseCredential, data: IBMDatabaseQuery, sessionKey?: string) {
@@ -190,7 +193,7 @@ export async function executeBatchQuery(this: ICloud, credential: IBMDatabaseCre
                     else {
                         delete item.update;
                     }
-                    this.addLog(types.STATUS_TYPE.WARN, message + ` (_id=${docId};_rev=${_rev || ERR_MESSAGE.UNKNOWN})`, service, 'getDocument');
+                    this.addLog(STATUS_TYPE.WARN, message + ` (_id=${docId};_rev=${_rev || ERR_MESSAGE.UNKNOWN})`, service, 'getDocument');
                 };
                 if (current) {
                     _rev = current._rev;
@@ -231,7 +234,7 @@ export async function executeBatchQuery(this: ICloud, credential: IBMDatabaseCre
                 query.db = db;
             }
             else if (!query.db) {
-                throw util.formatError(item, ERR_DB.NAME);
+                throw formatError(item, ERR_DB.NAME);
             }
             if (!('queries' in query)) {
                 if (partitionKey) {
@@ -265,7 +268,7 @@ export async function executeBatchQuery(this: ICloud, credential: IBMDatabaseCre
                 else {
                     const { status, result: document } = 'partitionKey' in query ? await client.postPartitionView(query) : await client.postView(query);
                     if (status === HTTP_STATUS.OK) {
-                        rows = document.rows?.map(row => types.isArray(row.value) ? row.value : row.doc || []);
+                        rows = document.rows?.map(row => isArray(row.value) ? row.value : row.doc || []);
                     }
                 }
             }
@@ -282,7 +285,7 @@ export async function executeBatchQuery(this: ICloud, credential: IBMDatabaseCre
                 params.db = db;
             }
             else if (!params.db) {
-                throw util.formatError(item, ERR_DB.NAME);
+                throw formatError(item, ERR_DB.NAME);
             }
             if (!('docs' in params) && !('queries' in params) && !('selector' in params)) {
                 if (partitionKey) {
@@ -330,7 +333,7 @@ export async function executeBatchQuery(this: ICloud, credential: IBMDatabaseCre
             }
         }
         else {
-            throw util.formatError(item, !db ? ERR_DB.NAME : ERR_DB.QUERY);
+            throw formatError(item, !db ? ERR_DB.NAME : ERR_DB.QUERY);
         }
         result[i] = this.setQueryResult(service, credential, queryString, rows, cacheValue);
     }

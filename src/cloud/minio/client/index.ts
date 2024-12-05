@@ -5,13 +5,13 @@ import type { CreateBucketV2Options, MinIOPolicyType, MinIOStorageCredential, S3
 
 import type { BucketItem, Encryption, ReplicationConfigOpts, TagList } from 'minio';
 
-import minio = require('minio');
+import { ERR_CLOUD, ERR_MESSAGE, SETTINGS_KEY_NAME as KEY_NAME, LOG_TYPE, VAL_CLOUD } from '@e-mc/types/constant';
 
-import types = require('@e-mc/types');
+import minio = require('minio');
 
 import Cloud = require('@e-mc/cloud');
 
-import { ERR_CLOUD, ERR_MESSAGE, SETTINGS_KEY_NAME as KEY_NAME, LOG_TYPE, VAL_CLOUD } from '@e-mc/types/constant';
+import { isObject, isPlainObject, isString } from '@e-mc/types';
 
 export const enum MINIO {
     SERVICE = 'minio',
@@ -98,7 +98,7 @@ export async function createBucketV2(this: IModule, credential: MinIOStorageCred
         if (policy) {
             void setBucketPolicy.call(this, credential, bucketName, policy);
         }
-        if (types.isPlainObject<CreateBucketV2Options>(options)) {
+        if (isPlainObject<CreateBucketV2Options>(options)) {
             const { tags, versioningConfig, encryptionConfig, replicationConfig } = options;
             const commandMessage = (feature: string) => {
                 this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [VAL_CLOUD.CONFIGURE_BUCKET + ` (${feature})`, bucketName], null, { ...Cloud.LOG_CLOUD_COMMAND });
@@ -106,7 +106,7 @@ export async function createBucketV2(this: IModule, credential: MinIOStorageCred
             const errorMessage = (feature: string, err: unknown) => {
                 this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.CONFIGURE_BUCKET + ` (${feature})`, bucketName], err, { ...Cloud.LOG_CLOUD_FAIL, fatal: false });
             };
-            if (types.isPlainObject<TagList>(tags)) {
+            if (isPlainObject<TagList>(tags)) {
                 client.setBucketTagging(bucketName, tags)
                     .then(() => {
                         commandMessage('Tags');
@@ -124,7 +124,7 @@ export async function createBucketV2(this: IModule, credential: MinIOStorageCred
                         errorMessage('Versioning', err);
                     });
             }
-            if (types.isPlainObject<Encryption>(encryptionConfig)) {
+            if (isPlainObject<Encryption>(encryptionConfig)) {
                 client.setBucketEncryption(bucketName, encryptionConfig)
                     .then(() => {
                         commandMessage('Encryption');
@@ -133,7 +133,7 @@ export async function createBucketV2(this: IModule, credential: MinIOStorageCred
                         errorMessage('Encryption', err);
                     });
             }
-            if (types.isPlainObject<ReplicationConfigOpts>(replicationConfig)) {
+            if (isPlainObject<ReplicationConfigOpts>(replicationConfig)) {
                 client.setBucketReplication(bucketName, replicationConfig)
                     .then(() => {
                         commandMessage('Replication');
@@ -168,10 +168,10 @@ export async function createBucketV2(this: IModule, credential: MinIOStorageCred
 }
 
 export async function setBucketPolicy(this: IModule, credential: MinIOStorageCredential, bucketName: string, bucketPolicy: string | AnyObject) {
-    if (types.isObject(bucketPolicy)) {
+    if (isObject(bucketPolicy)) {
         bucketPolicy = JSON.stringify(bucketPolicy);
     }
-    if (!types.isString(bucketPolicy)) {
+    if (!isString(bucketPolicy)) {
         this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.POLICY_INVALID, bucketName], null, { ...Cloud.LOG_CLOUD_WARN });
         return false;
     }
@@ -206,7 +206,7 @@ export async function setBucketPolicy(this: IModule, credential: MinIOStorageCre
 }
 
 export async function setBucketTagging(this: IModule, credential: MinIOStorageCredential, bucketName: string, tags: TagList) {
-    if (!types.isPlainObject(tags)) {
+    if (!isPlainObject(tags)) {
         return false;
     }
     const client = createStorageClient.call(this, credential);

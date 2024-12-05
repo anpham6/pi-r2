@@ -2,7 +2,7 @@ import type { ITransformSeries } from '@e-mc/types/lib/document';
 
 import type * as uglify from 'uglify-js';
 
-import util = require('@e-mc/document/util');
+import { isObject, removeInternalProperties } from '@e-mc/document/util';
 
 const MINIFY_PROPS = [
     'annotations',
@@ -33,7 +33,7 @@ function transform(context: typeof uglify, value: string, options: ITransformSer
     if (baseConfig.sourceMap === false) {
         sourceMap.reset();
     }
-    else if (util.isObject(baseConfig.sourceMap) || sourceMap.map && (baseConfig.sourceMap = {})) {
+    else if (isObject(baseConfig.sourceMap) || sourceMap.map && (baseConfig.sourceMap = {})) {
         const map = baseConfig.sourceMap as PlainObject;
         if (sourceMap.map) {
             map.content = sourceMap.map;
@@ -45,7 +45,7 @@ function transform(context: typeof uglify, value: string, options: ITransformSer
     }
     for (const chunk of supplementChunks) {
         const chunkConfig = { ...baseConfig };
-        if (util.isObject(chunkConfig.sourceMap)) {
+        if (isObject(chunkConfig.sourceMap)) {
             chunkConfig.sourceMap = { content: chunk.sourceMap?.map, asObject: true } as uglify.SourceMapOptions;
         }
         const result = context.minify(chunk.code, chunkConfig);
@@ -60,7 +60,7 @@ function transform(context: typeof uglify, value: string, options: ITransformSer
             }
         }
     }
-    const result = context.minify(value, util.removeInternalProperties(baseConfig, MINIFY_PROPS));
+    const result = context.minify(value, removeInternalProperties(baseConfig, MINIFY_PROPS));
     if (result) {
         if (result.map) {
             sourceMap.nextMap('uglify-js', result.code, result.map, url);

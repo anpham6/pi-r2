@@ -4,12 +4,12 @@ import type { Plugin } from 'svgo/lib/types';
 
 import type * as svgo from 'svgo';
 
-import types = require('@e-mc/types');
+import { ERR_MESSAGE } from '@e-mc/types/constant';
 
 import Document = require('@e-mc/document');
 import Parse = require('@e-mc/document/parse/dom');
 
-import { ERR_MESSAGE } from '@e-mc/types/constant';
+import { isPlainObject, isString } from '@e-mc/types';
 
 interface CustomPlugin {
     name: string;
@@ -23,7 +23,7 @@ function transform(context: typeof svgo, value: string, options: ITransformSerie
     if (Array.isArray(plugins)) {
         for (let i = 0; i < plugins.length; ++i) {
             const item = plugins[i];
-            if (types.isPlainObject<CustomPlugin>(item) && types.isString(item.fn)) {
+            if (isPlainObject<CustomPlugin>(item) && isString(item.fn)) {
                 const fn = Document.parseFunction(item.fn, { absolute: true, external: true });
                 if (fn) {
                     item.fn = fn as Plugin<void>;

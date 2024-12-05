@@ -8,13 +8,12 @@ import type { MinIOStorageCredential } from '../types';
 import type { NoResultCallback, RemoveOptions } from 'minio';
 import type { Readable } from 'stream';
 
-import types = require('@e-mc/types');
-
 import Cloud = require('@e-mc/cloud');
 
 import { ERR_CLOUD, LOG_TYPE, VAL_CLOUD } from '@e-mc/types/constant';
 
-import util = require('@e-mc/cloud/util');
+import { errorValue, isPlainObject } from '@e-mc/types';
+import { readableAsBuffer } from '@e-mc/cloud/util';
 
 import client = require('../client');
 
@@ -28,19 +27,19 @@ function download(this: IModule, credential: MinIOStorageCredential, service: st
         const { bucket: bucketName, download: target } = data;
         const filename = target.keyname || target.filename;
         if (!bucketName || !filename) {
-            callback(types.errorValue('Missing property', !bucketName ? 'Bucket' : 'Key'));
+            callback(errorValue('Missing property', !bucketName ? 'Bucket' : 'Key'));
             return;
         }
         (minio.getObject as GetObject)(bucketName, filename, { versionId: target.versionId }, (err, result) => {
             if (!err) {
-                util.readableAsBuffer(result).then(buffer => {
+                readableAsBuffer(result).then(buffer => {
                     callback(null, buffer);
                 }).catch((error: unknown) => {
                     callback(error);
                 });
                 const deleteObject = target.deleteObject;
                 if (deleteObject) {
-                    (minio.removeObject as RemoveObject)(bucketName, filename, types.isPlainObject(deleteObject) ? deleteObject : { versionId: target.versionId }, error => {
+                    (minio.removeObject as RemoveObject)(bucketName, filename, isPlainObject(deleteObject) ? deleteObject : { versionId: target.versionId }, error => {
                         const location = Cloud.joinPath(bucketName, filename);
                         if (!error) {
                             this.formatMessage(LOG_TYPE.CLOUD, service, VAL_CLOUD.DELETE_FILE, location, { ...Cloud.LOG_CLOUD_DELETE });

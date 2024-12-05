@@ -11,18 +11,17 @@ import type { Readable } from 'stream';
 
 import type { ItemBucketMetadata, LifecycleConfig, LockConfig } from 'minio';
 
+import { LOG_TYPE, TRANSFER_TYPE, VAL_CLOUD } from '@e-mc/types/constant';
+
 import path = require('node:path');
 import fs = require('node:fs');
 import crypto = require('node:crypto');
 import stream = require('node:stream');
 
-import types = require('@e-mc/types');
-
 import Cloud = require('@e-mc/cloud');
 
-import { LOG_TYPE, TRANSFER_TYPE, VAL_CLOUD } from '@e-mc/types/constant';
-
-import util = require('@e-mc/cloud/util');
+import { createAbortError, isPlainObject } from '@e-mc/types';
+import { createKeyAndBody, generateFilename } from '@e-mc/cloud/util';
 
 import { MINIO } from '../client';
 
@@ -70,7 +69,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
             const commandMessage = (feature: string, message: unknown = null) => {
                 this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.CONFIGURE_BUCKET + ` (${feature})`, bucketName], { ...Cloud[message === 'delete' ? 'LOG_CLOUD_WARN' : 'LOG_CLOUD_COMMAND'] });
             };
-            if (types.isPlainObject<LockConfig>(retentionPolicy)) {
+            if (isPlainObject<LockConfig>(retentionPolicy)) {
                 minio.setObjectLockConfig(bucketName, retentionPolicy, err => {
                     if (!err) {
                         commandMessage('Retention Policy', retentionPolicy.validity + ' ' + retentionPolicy.unit);
@@ -105,7 +104,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
         }
         if (!overwrite) {
             const current = filename;
-            const next = util.generateFilename(filename);
+            const next = generateFilename(filename);
             let i = 0,
                 exists: boolean | undefined;
             do {
@@ -138,7 +137,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
             try {
                 Stream.push(data.buffer.length ? stream.Readable.from(data.buffer) : fs.createReadStream(localUri, { signal: this.signal }));
                 if (fileGroup) {
-                    const [key, body, type] = util.createKeyAndBody<Readable>(filename, fileGroup, 0, addLog, TRANSFER_TYPE.STREAM);
+                    const [key, body, type] = createKeyAndBody<Readable>(filename, fileGroup, 0, addLog, TRANSFER_TYPE.STREAM);
                     Key.push(...key);
                     Stream.push(...body);
                     ContentType.push(...type);
@@ -152,7 +151,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
         else {
             Body.push(data.buffer);
             if (fileGroup) {
-                const [key, body, type] = util.createKeyAndBody(filename, fileGroup, 0, addLog);
+                const [key, body, type] = createKeyAndBody(filename, fileGroup, 0, addLog);
                 Key.push(...key);
                 Body.push(...body);
                 ContentType.push(...type);
@@ -162,7 +161,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
             const first = i === 0;
             if (this.aborted) {
                 if (first) {
-                    errorResponse(types.createAbortError());
+                    errorResponse(createAbortError());
                 }
                 return;
             }
@@ -206,7 +205,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
                     return;
                 }
                 let length = -1;
-                if (types.isPlainObject(tags) && (length = Object.keys(tags).length) > 0) {
+                if (isPlainObject(tags) && (length = Object.keys(tags).length) > 0) {
                     minio.setObjectTagging(bucketName, objectName, tags, error => {
                         if (!error) {
                             this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.CREATE_TAG, bucketName], objectName, { ...Cloud.LOG_CLOUD_COMMAND });
