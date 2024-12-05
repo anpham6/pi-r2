@@ -32,22 +32,13 @@ export function parseFormat(command: string, mimeType?: string, gif?: boolean): 
     for (let mime of MIME_OUTPUT) {
         let saveAs = mime.split('/')[1];
         if (command.startsWith(saveAs)) {
-            let finalAs = '';
+            let outputAs = '';
             if (saveAs !== 'gif') {
                 switch (saveAs) {
                     case 'jpeg':
                         saveAs = 'jpg';
                         break;
                     case 'webp':
-                        if (mimeType === STRINGS.MIME_WEBP) {
-                            try {
-                                require('node-webpmux') as unknown;
-                                mime = STRINGS.MIME_WEBP;
-                                break;
-                            }
-                            catch {
-                            }
-                        }
                         if (mimeType === jimp.JimpMime.jpeg) {
                             mime = jimp.JimpMime.jpeg;
                             saveAs = 'jpg';
@@ -56,18 +47,22 @@ export function parseFormat(command: string, mimeType?: string, gif?: boolean): 
                             mime = jimp.JimpMime.gif;
                             saveAs = 'gif';
                         }
-                        else {
+                        else if (mimeType === jimp.JimpMime.png) {
                             mime = jimp.JimpMime.png;
                             saveAs = 'png';
                         }
-                        finalAs = 'webp';
+                        else {
+                            mime = jimp.JimpMime.bmp;
+                            saveAs = 'bmp';
+                        }
+                        outputAs = 'webp';
                         break;
                 }
             }
             else if (!gif) {
                 break;
             }
-            return [mime, saveAs, finalAs];
+            return [mime, saveAs, outputAs];
         }
     }
     return ['', '', ''];
