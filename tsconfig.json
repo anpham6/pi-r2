@@ -3,9 +3,6 @@
     "target": "es2021",
     "module": "preserve",
     "baseUrl": ".",
-    "paths": {
-      "@pi-r2/jimp/*": ["src/module/jimp/*"]
-    },
     "newLine": "lf",
     "inlineSourceMap": false,
     "noUnusedLocals": true,

@@ -431,25 +431,27 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
                 break;
             default: {
                 let mode: jimp.ResizeStrategy = jimp.ResizeStrategy.NEAREST_NEIGHBOR;
-                switch (data.algorithm) {
-                    case 'bilinear':
-                        mode = jimp.ResizeStrategy.BILINEAR;
-                        break;
-                    case 'bicubic':
-                        mode = jimp.ResizeStrategy.BICUBIC;
-                        break;
-                    case 'hermite':
-                        mode = jimp.ResizeStrategy.HERMITE;
-                        break;
-                    case 'bezier':
-                        mode = jimp.ResizeStrategy.BEZIER;
-                        break;
+                if (data.algorithm) {
+                    switch (data.algorithm) {
+                        case 'bilinear':
+                            mode = jimp.ResizeStrategy.BILINEAR;
+                            break;
+                        case 'bicubic':
+                            mode = jimp.ResizeStrategy.BICUBIC;
+                            break;
+                        case 'hermite':
+                            mode = jimp.ResizeStrategy.HERMITE;
+                            break;
+                        case 'bezier':
+                            mode = jimp.ResizeStrategy.BEZIER;
+                            break;
+                    }
                 }
                 const options = { mode } as jimp.ResizeOptions;
-                if (w !== Infinity) {
+                if (w < Infinity) {
                     options.w = w;
                 }
-                if (h !== Infinity) {
+                if (h < Infinity) {
                     options.h = h;
                 }
                 handler.resize(options);
