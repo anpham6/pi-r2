@@ -59,11 +59,11 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/cloud": "^0.10.3",
-    "@e-mc/document": "^0.10.3",
-    "@e-mc/image": "^0.10.3",
-    "@e-mc/module": "^0.10.3",
-    "@e-mc/types": "^0.10.3",
+    "@e-mc/cloud": "^0.10.5",
+    "@e-mc/document": "^0.10.5",
+    "@e-mc/image": "^0.10.5",
+    "@e-mc/module": "^0.10.5",
+    "@e-mc/types": "^0.10.5",
     "@ibm-cloud/cloudant": "^0.11.0",
     "@jimp/utils": "*",
     "@pi-r/aws": "^0.8.3",
@@ -74,7 +74,7 @@
     "@types/node": "^20.17.9",
     "@types/pngjs": "*",
     "@types/uglify-js": "^3.17.5",
-    "eslint": "9.15.0",
+    "eslint": "9.16.0",
     "gifwrap": "*",
     "ibm-cos-sdk": "^1.13.4",
     "jimp": "^1.6.0",
@@ -82,9 +82,9 @@
     "rollup": "^4.28.0",
     "sqd-admin": "^0.15.10",
     "sqd-build": "^0.4.0",
-    "sqd-eslint": "0.6.0",
+    "sqd-eslint": "0.6.1",
     "svgo": "^3.3.2",
     "typescript": "5.7.2",
-    "typescript-eslint": "8.16.0"
+    "typescript-eslint": "8.17.0"
   }
 }
