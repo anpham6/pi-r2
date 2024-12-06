@@ -167,13 +167,13 @@ async function transformCommand(localFile: string, handler: IJimpHandler, comman
     });
 }
 
-function setImageCache(instance: Jimp, tempKey: string, tempFile: string, output: Bufferable, localFile?: string) {
+async function setImageCache(instance: Jimp, tempKey: string, tempFile: string, output: Bufferable, localFile?: string) {
     try {
         if (typeof output === 'string') {
-            fs.copyFileSync(output, tempFile);
+            await fs.promises.copyFile(output, tempFile);
         }
         else {
-            fs.writeFileSync(tempFile, output);
+            await fs.promises.writeFile(tempFile, output);
         }
         const stored = getCacheData(instance);
         if (localFile) {
@@ -706,7 +706,7 @@ class Jimp extends Image {
                 instance.flushLog();
                 writeMessage(!result || instance.errors.length > 0);
                 if (result && tempKey && tempFile) {
-                    setImageCache(instance, tempKey, tempFile, result, file);
+                    void setImageCache(instance, tempKey, tempFile, result, file);
                 }
                 return result as T;
             })
@@ -817,7 +817,7 @@ class Jimp extends Image {
             }
             const finalize = (value: string) => {
                 if (tempFile && tempKey) {
-                    setImageCache(this, tempKey, tempFile, value);
+                    void setImageCache(this, tempKey, tempFile, value);
                 }
                 if (replace) {
                     delete file.buffer;
@@ -951,17 +951,17 @@ class Jimp extends Image {
                             startMessage();
                             const { GifUtil, BitmapImage } = gifwrap;
                             GifUtil.read(file.buffer || localUri)
-                                .then(gif => {
+                                .then(src => {
                                     rotateAnim(cmd);
-                                    Promise.all(gif.frames.map(async frame => {
-                                        const buffer = bmp.encode({ width: frame.bitmap.width, height: frame.bitmap.height, data: frame.bitmap.data }).data;
-                                        const instance = await jimp.Jimp.read(buffer) as jimp.JimpInstance;
+                                    Promise.all(src.frames.map(async frame => {
+                                        const bitmap = bmp.encode(frame.bitmap).data;
+                                        const instance = await jimp.Jimp.read(bitmap) as jimp.JimpInstance;
                                         const handler = new JimpHandler(instance, this);
                                         return transformCommand(localUri, handler, cmd, jimp.JimpMime.gif);
                                     }))
                                     .then(items => {
                                         const quantize = this.settings.jimp?.gifwrap_quantize || '';
-                                        const frames = gif.frames;
+                                        const frames = src.frames;
                                         for (let i = 0, length = items.length; i < length; ++i) {
                                             const img = new BitmapImage(items[i].handler.bitmap);
                                             switch (quantize) {
@@ -979,7 +979,7 @@ class Jimp extends Image {
                                             }
                                             frames[i].bitmap = img.bitmap;
                                         }
-                                        GifUtil.write(output, frames, gif)
+                                        GifUtil.write(output, frames, src)
                                             .then(() => {
                                                 transformWebP(output, true);
                                             })
@@ -1011,15 +1011,18 @@ class Jimp extends Image {
                         }
                         await webp.load(host.getBuffer(file)!);
                         if (!(webp.hasAnim && (outputType === STRINGS.MIME_WEBP || outputType === jimp.JimpMime.gif))) {
-                            transformBuffer(bmp.encode({ width: webp.width, height: webp.height, data: Image.toABGR(await (!webp.hasAnim ? webp.getImageData() : webp.getFrameData(0))) }).data);
+                            const buffer = Image.toABGR(await (!webp.hasAnim ? webp.getImageData() : webp.getFrameData(0)));
+                            const bitmap = bmp.encode({ width: webp.width, height: webp.height, data: buffer }).data;
+                            transformBuffer(bitmap);
                             return true;
                         }
                         const cmd = this.parseCommand(command);
                         if (hasTransform(cmd)) {
                             startMessage();
                             Promise.all(webp.frames.map(async (frame, index) => {
-                                const buffer = bmp.encode({ width: frame.width, height: frame.height, data: Image.toABGR(await webp.getFrameData(index)) }).data;
-                                const instance = await jimp.Jimp.read(buffer) as jimp.JimpInstance;
+                                const buffer = Image.toABGR(await webp.getFrameData(index));
+                                const bitmap = bmp.encode({ width: frame.width, height: frame.height, data: buffer }).data;
+                                const instance = await jimp.Jimp.read(bitmap) as jimp.JimpInstance;
                                 const handler = new JimpHandler(instance, this);
                                 handler.background(webp.anim.bgColor);
                                 return transformCommand(localUri, handler, cmd, jimp.JimpMime.bmp);
