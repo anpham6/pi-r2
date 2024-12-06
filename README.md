@@ -3,6 +3,9 @@
 * NodeJS 16 LTS
 * ES2021
 
+> [!CAUTION]
+> Unless otherwise noted the subsequent `@pi-r` packages are no longer unmaintained.
+
 ## General Usage
 
 * [E-mc](https://e-mc.readthedocs.io/en/latest/document/plugins)
@@ -21,7 +24,7 @@
 
 ## Image
 
-* [@pi-r2/jimp](https://github.com/jimp-dev/jimp)
+* [@pi-r2/jimp](https://github.com/jimp-dev/jimp) (experimental)
 
 ## LICENSE
 

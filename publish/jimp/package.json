@@ -21,7 +21,7 @@
   "dependencies": {
     "@e-mc/image": "^0.10.5",
     "@e-mc/types": "^0.10.5",
-    "@jimp/utils": "*",
+    "@jimp/utils": "^1.6.0",
     "bmp-js": "^0.1.0",
     "gifwrap": "^0.10.1",
     "jimp": "^1.6.0"
