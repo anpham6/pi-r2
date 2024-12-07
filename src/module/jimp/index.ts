@@ -97,16 +97,16 @@ const METHOD_ALIAS = {
 type MethodName = keyof typeof METHOD_ALIAS;
 
 function getMethodName(value: string) {
-    const name = value.toLowerCase() as MethodName;
-    if (METHOD_ALIAS[name]) {
-        return name;
-    }
-    if (name.length === 2) {
+    if (value.length === 2) {
+        value = value.toLowerCase();
         for (const alias in METHOD_ALIAS) {
-            if (METHOD_ALIAS[alias as MethodName] === name) {
+            if (METHOD_ALIAS[alias as MethodName] === value) {
                 return alias as MethodName;
             }
         }
+    }
+    else if (METHOD_ALIAS[value as MethodName] || METHOD_ALIAS[value = value.toLowerCase() as MethodName]) {
+        return value as MethodName;
     }
 }
 
