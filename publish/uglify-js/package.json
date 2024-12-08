@@ -1,6 +1,6 @@
 {
   "name": "@pi-r/uglify-js",
-  "version": "0.8.3",
+  "version": "0.9.0",
   "description": "uglify-js transform function for E-mc.",
   "main": "index.js",
   "publishConfig": {
@@ -19,7 +19,7 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/document": "^0.10.5",
+    "@e-mc/document": "^0.11.0",
     "uglify-js": "^3.19.3"
   }
 }
