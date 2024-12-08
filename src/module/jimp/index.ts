@@ -139,7 +139,7 @@ function execOptions(settings: JimpSettings) {
     return { uid, gid };
 }
 
-async function transformCommand(localFile: string, handler: IJimpHandler, command: string | CommandData, outputType: string, outputAs?: string, parent?: ExternalAsset) {
+async function transformCommand(localFile: string, handler: IJimpHandler<IFileManager>, command: string | CommandData, outputType: string, outputAs?: string, parent?: ExternalAsset) {
     if (command) {
         handler.instance.setCommand(command, outputAs);
     }
@@ -157,9 +157,9 @@ async function transformCommand(localFile: string, handler: IJimpHandler, comman
             return handler.rotate();
     }
     return handler.rotate(localFile, (err, result) => {
-        if (!err && handler.host?.moduleName === 'filemanager') {
+        if (!err) {
             try {
-                (handler.host as IFileManager).add(result, parent);
+                handler.host?.add(result, parent);
             }
             catch {
             }
