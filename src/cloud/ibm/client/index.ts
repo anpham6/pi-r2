@@ -201,7 +201,7 @@ export async function executeBatchQuery(this: ICloud, credential: IBMDatabaseCre
                         try {
                             _rev = document._rev;
                             update.db = db;
-                            update.document = { ...document, ...current, _id: docId, _rev };
+                            update.document = { ...document as PlainObject, ...current as PlainObject, _id: docId, _rev };
                             ({ status } = await client.postDocument(update));
                             if (status === HTTP_STATUS.OK || status === HTTP_STATUS.ACCEPTED) {
                                 ({ status, result: document } = await client.getDocument({ db, docId }));
