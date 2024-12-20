@@ -32,22 +32,6 @@ module.exports = [
         }
     },
     {
-        input: './publish/svgo/index.js',
-        treeshake: false,
-        output: {
-            file: './publish/svgo/index.js',
-            format: 'commonjs'
-        }
-    },
-    {
-        input: './publish/uglify-js/index.js',
-        treeshake: false,
-        output: {
-            file: './publish/uglify-js/index.js',
-            format: 'commonjs'
-        }
-    },
-    {
         input: './publish/jimp/util.js',
         treeshake: false,
         output: {

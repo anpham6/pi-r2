@@ -1,4 +1,4 @@
-# Pi-r2 0.1
+# Pi-r2 0.2
 
 * NodeJS 16 LTS
 * ES2021
@@ -12,6 +12,8 @@
 
 ## Document
 
+* [@pi-r/clean-css](https://github.com/jakubpawlowicz/clean-css)
+* [@pi-r/csso](https://github.com/css/csso)
 * [@pi-r/html-minifier](https://github.com/kangax/html-minifier)
 * [@pi-r/html-minifier-terser](https://github.com/DanielRuf/html-minifier-terser)
 * [@pi-r/svgo](https://github.com/svg/svgo)
