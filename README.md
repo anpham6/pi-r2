@@ -4,7 +4,7 @@
 * ES2021
 
 > [!CAUTION]
-> Unless otherwise noted the subsequent `@pi-r` packages are no longer unmaintained.
+> Unless otherwise noted the subsequent `@pi-r` packages are no longer maintained.
 
 ## General Usage
 
