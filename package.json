@@ -75,10 +75,10 @@
     "@types/csso": "^5.0.4",
     "@types/html-minifier": "^4.0.5",
     "@types/html-minifier-terser": "^7.0.2",
-    "@types/node": "^20.17.19",
+    "@types/node": "^20.17.23",
     "@types/pngjs": "*",
     "@types/uglify-js": "^3.17.5",
-    "eslint": "9.19.0",
+    "eslint": "9.21.0",
     "gifwrap": "*",
     "ibm-cloud-sdk-core": "*",
     "ibm-cos-sdk": "^1.14.0",
@@ -88,9 +88,9 @@
     "source-map-js": "*",
     "sqd-admin": "^0.16.1",
     "sqd-build": "^0.6.0",
-    "sqd-eslint": "0.7.1",
+    "sqd-eslint": "0.7.2",
     "svgo": "^3.3.2",
     "typescript": "5.7.3",
-    "typescript-eslint": "8.23.0"
+    "typescript-eslint": "8.26.0"
   }
 }

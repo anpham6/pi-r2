@@ -30,7 +30,7 @@ function transform(context: typeof svgo, value: string, options: ITransformSerie
                 }
                 else {
                     plugins.splice(i--, 1);
-                    options.addLog(options.logType.PROCESS, ERR_MESSAGE.FUNCTION + ` (${item.fn})`, options.moduleName, 'svgo');
+                    options.addLog(options.logType.PROCESS, ERR_MESSAGE.FUNCTION + ` (${item.fn})`, { source: 'svgo' });
                 }
             }
         }
