@@ -139,7 +139,7 @@ function execOptions(settings: JimpSettings) {
     return { uid, gid };
 }
 
-async function transformCommand(localFile: string, handler: IJimpHandler<IFileManager>, command: string | CommandData, outputType: string, outputAs?: string, parent?: ExternalAsset) {
+async function transformCommand(localFile: string, handler: JimpHandler, command: string | CommandData, outputType: string, outputAs?: string, parent?: ExternalAsset) {
     if (command) {
         handler.instance.setCommand(command, outputAs);
     }
@@ -303,13 +303,16 @@ function getJPEGOptions(instance: Jimp, output: string) {
 const hasTransform = (cmd: CommandData) => !!(cmd.rotate || cmd.resize || cmd.crop || cmd.method || typeof cmd.opacity === 'number' && cmd.opacity >= 0 && cmd.opacity < 1);
 const emptyResult = <T>(options: TransformOptions) => (options.tempFile ? '' : null) as T;
 
-class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings>> {
+class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJimpHandler<IFileManager, ImageModule<JimpSettings>, T> {
     outFile = '';
 
     constructor(
-        public handler: jimp.JimpInstance,
+        public handler: T,
         public instance: Jimp,
         private readonly _host: IHost | null = null) {
+    }
+    quality?(): void {
+        throw new Error('Method not implemented.');
     }
 
     async rotate(localFile?: string, callback?: ResultCallback<string>) {
@@ -827,7 +830,7 @@ class Jimp extends Image {
             const transformBuffer = (bmpFile?: Bufferable) => {
                 startMessage();
                 performCommand(host, this, localUri, command, bmpFile ? jimp.JimpMime.bmp : outputType, outputAs, bmpFile || file.buffer, file)
-                    .then((img: JimpHandler) => {
+                    .then(img => {
                         if (typeof bmpFile === 'string') {
                             removeFile(bmpFile);
                         }

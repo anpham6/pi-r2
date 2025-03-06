@@ -4,6 +4,7 @@
     "module": "preserve",
     "baseUrl": ".",
     "newLine": "lf",
+    "libReplacement": false,
     "inlineSourceMap": false,
     "noUnusedLocals": true,
     "preserveConstEnums": false,
