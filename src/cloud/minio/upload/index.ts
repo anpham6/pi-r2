@@ -70,35 +70,26 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
                 this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.CONFIGURE_BUCKET + ` (${feature})`, bucketName], { ...Cloud[message === 'delete' ? 'LOG_CLOUD_WARN' : 'LOG_CLOUD_COMMAND'] });
             };
             if (isPlainObject<LockConfig>(retentionPolicy)) {
-                minio.setObjectLockConfig(bucketName, retentionPolicy, err => {
-                    if (!err) {
+                ((minio.setObjectLockConfig(bucketName, retentionPolicy) as unknown) as Promise<void>)
+                    .then(() => {
                         commandMessage('Retention Policy', retentionPolicy.validity + ' ' + retentionPolicy.unit);
-                    }
-                    else {
-                        addLog(err);
-                    }
-                });
+                    })
+                    .catch(addLog);
             }
             if (lifecycle && Array.isArray(lifecycle.Rule)) {
                 if (lifecycle.Rule.length === 0) {
-                    minio.removeBucketLifecycle(bucketName, err => {
-                        if (!err) {
+                    minio.removeBucketLifecycle(bucketName)
+                        .then(() => {
                             commandMessage('Lifecycle', 'delete');
-                        }
-                        else {
-                            addLog(err);
-                        }
-                    });
+                        })
+                        .catch(addLog);
                 }
                 else {
-                    minio.setBucketLifecycle(bucketName, lifecycle, err => {
-                        if (!err) {
+                    minio.setBucketLifecycle(bucketName, lifecycle)
+                        .then(() => {
                             commandMessage('Lifecycle');
-                        }
-                        else {
-                            addLog(err);
-                        }
-                    });
+                        })
+                        .catch(addLog);
                 }
             }
         }
@@ -189,45 +180,38 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
                     }
                 }
             }
-            minio.putObject(bucketName, objectName, Stream.length ? Stream[i] : Body[i], Stream.length ? (undefined as unknown) as number : Body[i].byteLength, params, err => {
-                if (err) {
+            minio.putObject(bucketName, objectName, Stream.length > 0 ? Stream[i] : Body[i], Stream.length > 0 ? undefined : Body[i].byteLength, params)
+                .then(() => {
+                    const url = Cloud.joinPath(endpoint || Cloud.joinPath(MINIO.SERVER, bucketName), objectName);
+                    this.formatMessage(LOG_TYPE.CLOUD, service, VAL_CLOUD.UPLOAD_FILE, url, { ...Cloud.LOG_CLOUD_UPLOAD });
+                    if (first) {
+                        let length = -1;
+                        if (isPlainObject(tags) && (length = Object.keys(tags).length) > 0) {
+                            minio.setObjectTagging(bucketName, objectName, tags, { versionId: '' })
+                                .then(() => {
+                                    this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.CREATE_TAG, bucketName], objectName, { ...Cloud.LOG_CLOUD_COMMAND });
+                                })
+                                .catch(addLog);
+                        }
+                        else if (tags === false || length === 0) {
+                            minio.removeObjectTagging(bucketName, objectName, { versionId: '' })
+                                .then(() => {
+                                    this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.DELETE_TAG, bucketName], objectName, { ...Cloud.LOG_CLOUD_COMMAND });
+                                })
+                                .catch(addLog);
+                        }
+                        cleanup();
+                        callback(null, url);
+                    }
+                })
+                .catch((err: unknown) => {
                     if (first) {
                         errorResponse(err);
                     }
                     else {
                         addLog(err);
                     }
-                    return;
-                }
-                const url = Cloud.joinPath(endpoint || Cloud.joinPath(MINIO.SERVER, bucketName), objectName);
-                this.formatMessage(LOG_TYPE.CLOUD, service, VAL_CLOUD.UPLOAD_FILE, url, { ...Cloud.LOG_CLOUD_UPLOAD });
-                if (!first) {
-                    return;
-                }
-                let length = -1;
-                if (isPlainObject(tags) && (length = Object.keys(tags).length) > 0) {
-                    minio.setObjectTagging(bucketName, objectName, tags, error => {
-                        if (!error) {
-                            this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.CREATE_TAG, bucketName], objectName, { ...Cloud.LOG_CLOUD_COMMAND });
-                        }
-                        else {
-                            addLog(error);
-                        }
-                    });
-                }
-                else if (tags === false || length === 0) {
-                    minio.removeObjectTagging(bucketName, objectName, error => {
-                        if (!error) {
-                            this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.DELETE_TAG, bucketName], objectName, { ...Cloud.LOG_CLOUD_COMMAND });
-                        }
-                        else {
-                            addLog(error);
-                        }
-                    });
-                }
-                cleanup();
-                callback(null, url);
-            });
+                });
         }
     };
 }

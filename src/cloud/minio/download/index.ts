@@ -5,8 +5,7 @@ import type { DownloadCallback } from '@e-mc/cloud/types';
 
 import type { MinIOStorageCredential } from '../types';
 
-import type { NoResultCallback, RemoveOptions } from 'minio';
-import type { Readable } from 'stream';
+import type { RemoveOptions } from 'minio';
 
 import Cloud = require('@e-mc/cloud');
 
@@ -17,10 +16,6 @@ import { readableAsBuffer } from '@e-mc/cloud/util';
 
 import client = require('../client');
 
-type ResultCallback<T> = (error: Error | null, result: T) => void;
-type GetObject = (bucketName: string, objectName: string, getOpts: AnyObject, cb: ResultCallback<Readable>) => void;
-type RemoveObject = (bucketName: string, objectName: string, removeOpts: AnyObject, cb: NoResultCallback) => void;
-
 function download(this: IModule, credential: MinIOStorageCredential, service: string): DownloadCallback {
     const minio = client.createStorageClient.call(this, credential);
     return (data: DownloadData<RemoveOptions>, callback) => {
@@ -30,30 +25,22 @@ function download(this: IModule, credential: MinIOStorageCredential, service: st
             callback(errorValue('Missing property', !bucketName ? 'Bucket' : 'Key'));
             return;
         }
-        (minio.getObject as GetObject)(bucketName, filename, { versionId: target.versionId }, (err, result) => {
-            if (!err) {
-                readableAsBuffer(result).then(buffer => {
-                    callback(null, buffer);
-                }).catch((error: unknown) => {
-                    callback(error);
-                });
+        minio.getObject(bucketName, filename, { versionId: target.versionId })
+            .then(result => {
+                readableAsBuffer(result).then(buffer => callback(null, buffer)).catch(callback);
                 const deleteObject = target.deleteObject;
                 if (deleteObject) {
-                    (minio.removeObject as RemoveObject)(bucketName, filename, isPlainObject(deleteObject) ? deleteObject : { versionId: target.versionId }, error => {
-                        const location = Cloud.joinPath(bucketName, filename);
-                        if (!error) {
+                    const location = Cloud.joinPath(bucketName, filename);
+                    minio.removeObject(bucketName, filename, isPlainObject(deleteObject) ? deleteObject : { versionId: target.versionId })
+                        .then(() => {
                             this.formatMessage(LOG_TYPE.CLOUD, service, VAL_CLOUD.DELETE_FILE, location, { ...Cloud.LOG_CLOUD_DELETE });
-                        }
-                        else {
-                            this.formatFail(LOG_TYPE.CLOUD, service, [ERR_CLOUD.DELETE_FAIL, location], error, { ...Cloud.LOG_CLOUD_FAIL, fatal: !!target.active });
-                        }
-                    });
+                        })
+                        .catch((err: unknown) => {
+                            this.formatFail(LOG_TYPE.CLOUD, service, [ERR_CLOUD.DELETE_FAIL, location], err, { ...Cloud.LOG_CLOUD_FAIL, fatal: !!target.active });
+                        });
                 }
-            }
-            else {
-                callback(err);
-            }
-        });
+            })
+            .catch(callback);
     };
 }
 

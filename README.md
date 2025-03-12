@@ -1,10 +1,10 @@
 # Pi-r2 0.2
 
-* NodeJS 16 LTS
-* ES2021
+* NodeJS 18
+* ES2022
 
 > [!CAUTION]
-> Unless otherwise noted the subsequent `@pi-r` packages are no longer maintained.
+> Unless otherwise noted these former `@pi-r` packages are unmaintained and untested. They are republished as is once per year with the **NodeJS LTS** turnover in April.
 
 ## General Usage
 
@@ -12,17 +12,17 @@
 
 ## Document
 
-* [@pi-r/clean-css](https://github.com/jakubpawlowicz/clean-css)
-* [@pi-r/csso](https://github.com/css/csso)
-* [@pi-r/html-minifier](https://github.com/kangax/html-minifier)
-* [@pi-r/html-minifier-terser](https://github.com/DanielRuf/html-minifier-terser)
-* [@pi-r/svgo](https://github.com/svg/svgo)
-* [@pi-r/uglify-js](https://github.com/mishoo/UglifyJS)
+* [@pi-r2/clean-css](https://github.com/jakubpawlowicz/clean-css)
+* [@pi-r2/csso](https://github.com/css/csso)
+* [@pi-r2/html-minifier](https://github.com/kangax/html-minifier)
+* [@pi-r2/html-minifier-terser](https://github.com/DanielRuf/html-minifier-terser)
+* [@pi-r2/svgo](https://github.com/svg/svgo)
+* [@pi-r2/uglify-js](https://github.com/mishoo/UglifyJS)
 
 ## Cloud
 
-* [@pi-r/ibm](https://www.ibm.com/cloud/free)
-* [@pi-r/minio](https://min.io)
+* [@pi-r2/ibm](https://www.ibm.com/cloud/free)
+* [@pi-r2/minio](https://min.io)
 
 ## Image
 

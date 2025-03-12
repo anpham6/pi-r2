@@ -1,6 +1,6 @@
 {
-  "name": "@pi-r/minio",
-  "version": "0.9.0",
+  "name": "@pi-r2/minio",
+  "version": "0.1.0",
   "description": "Minio storage functions for E-mc.",
   "main": "client/index.js",
   "publishConfig": {
@@ -22,6 +22,6 @@
     "@e-mc/cloud": "^0.11.3",
     "@e-mc/module": "^0.11.3",
     "@e-mc/types": "^0.11.3",
-    "minio": "7.1.3"
+    "minio": "^8.0.4"
   }
 }

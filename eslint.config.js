@@ -17,5 +17,11 @@ module.exports = tseslint.config(
         rules: {
             'import/no-duplicates': 'off',
         }
-    }
+    },
+    {
+        files: ['src/cloud/minio/**/*.ts'],
+        rules: {
+            '@typescript-eslint/no-confusing-void-expression': 'off'
+        }
+    },
 );

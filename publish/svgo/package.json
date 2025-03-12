@@ -1,6 +1,6 @@
 {
-  "name": "@pi-r/svgo",
-  "version": "0.9.0",
+  "name": "@pi-r2/svgo",
+  "version": "0.1.0",
   "description": "SVGO transform function for E-mc.",
   "main": "index.js",
   "publishConfig": {

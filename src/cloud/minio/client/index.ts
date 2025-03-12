@@ -3,7 +3,7 @@ import type { CloudStorage } from '@e-mc/types/lib/cloud';
 
 import type { CreateBucketV2Options, MinIOPolicyType, MinIOStorageCredential, S3PolicyType } from '../types';
 
-import type { BucketItem, Encryption, ReplicationConfigOpts, TagList } from 'minio';
+import type { BucketItem, TagList } from 'minio';
 
 import { ERR_CLOUD, ERR_MESSAGE, SETTINGS_KEY_NAME as KEY_NAME, LOG_TYPE, VAL_CLOUD } from '@e-mc/types/constant';
 
@@ -124,7 +124,7 @@ export async function createBucketV2(this: IModule, credential: MinIOStorageCred
                         errorMessage('Versioning', err);
                     });
             }
-            if (isPlainObject<Encryption>(encryptionConfig)) {
+            if (isPlainObject(encryptionConfig)) {
                 client.setBucketEncryption(bucketName, encryptionConfig)
                     .then(() => {
                         commandMessage('Encryption');
@@ -133,8 +133,8 @@ export async function createBucketV2(this: IModule, credential: MinIOStorageCred
                         errorMessage('Encryption', err);
                     });
             }
-            if (isPlainObject<ReplicationConfigOpts>(replicationConfig)) {
-                client.setBucketReplication(bucketName, replicationConfig)
+            if (isPlainObject(replicationConfig)) {
+                ((client.setBucketReplication(bucketName, replicationConfig) as unknown) as Promise<void>)
                     .then(() => {
                         commandMessage('Replication');
                     })
@@ -251,27 +251,20 @@ export async function deleteObjectsV2(this: IModule, credential: MinIOStorageCre
                         items.push(item);
                     });
                     stream.on('end', () => {
-                        client.removeObjects(bucketName, items.map(item => item.name!), err => {
-                            if (!err) {
+                        client.removeObjects(bucketName, items.map(item => item.name!))
+                            .then(() => {
                                 this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [VAL_CLOUD.EMPTY_BUCKET + ` (${items.length} files)`, bucketName], null, { ...Cloud.LOG_CLOUD_COMMAND });
                                 resolve();
-                            }
-                            else {
-                                reject(err);
-                            }
-                        });
+                            })
+                            .catch(reject);
                     });
-                    stream.on('error', err => {
-                        reject(err);
-                    });
+                    stream.on('error', reject);
                 }
                 else {
                     resolve();
                 }
             })
-            .catch((err: unknown) => {
-                reject(err);
-            });
+            .catch(reject);
     });
 }
 

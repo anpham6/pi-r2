@@ -1,6 +1,6 @@
 {
   "name": "@pi-r2/jimp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Jimp V1 image constructor for E-mc.",
   "main": "index.js",
   "publishConfig": {

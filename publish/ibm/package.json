@@ -1,6 +1,6 @@
 {
-  "name": "@pi-r/ibm",
-  "version": "0.9.0",
+  "name": "@pi-r2/ibm",
+  "version": "0.1.0",
   "description": "IBM cloud functions for E-mc.",
   "main": "client/index.js",
   "publishConfig": {
@@ -23,8 +23,8 @@
     "@e-mc/module": "^0.11.3",
     "@e-mc/types": "^0.11.3",
     "@pi-r/aws": "^0.9.2",
-    "@ibm-cloud/cloudant": "^0.11.0",
-    "ibm-cloud-sdk-core": "^5.1.2",
+    "@ibm-cloud/cloudant": "^0.12.2",
+    "ibm-cloud-sdk-core": "^5.3.2",
     "ibm-cos-sdk": "^1.14.0"
   }
 }
