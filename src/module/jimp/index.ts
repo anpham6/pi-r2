@@ -184,7 +184,7 @@ async function setImageCache(instance: Jimp, tempKey: string, tempFile: string, 
             stored[tempKey] = { tempKey, tempFile, ctimeMs: Date.now() };
         }
         if (instance.settings.jimp!.cache_expires) {
-            fs.writeFile(tempFile + '.json', JSON.stringify(stored[tempKey]), 'utf-8', () => {});
+            fs.writeFile(tempFile + '.json', JSON.stringify(stored[tempKey]), 'utf8', () => {});
         }
     }
     catch {
@@ -235,7 +235,7 @@ function getCacheData(instance: Jimp) {
                         if (item.isFile() && path.extname(item.name) === '.json') {
                             const pathname = path.join(TEMP_DIR, item.name);
                             try {
-                                const data = JSON.parse(fs.readFileSync(pathname, 'utf-8')) as unknown;
+                                const data = JSON.parse(fs.readFileSync(pathname, 'utf8')) as unknown;
                                 if (types.isPlainObject<CacheData>(data) && fs.existsSync(data.tempFile)) {
                                     if (data.ctimeMs + expires > current) {
                                         CACHE_TRANSFORM[data.tempKey] = data;
