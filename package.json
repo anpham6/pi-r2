@@ -87,7 +87,7 @@
     "rollup": "^4.34.7",
     "source-map-js": "*",
     "sqd-admin": "^0.16.1",
-    "sqd-build": "^0.6.0",
+    "sqd-build": "^0.6.1",
     "sqd-eslint": "0.7.3",
     "svgo": "^3.3.2",
     "typescript": "5.8.2",
