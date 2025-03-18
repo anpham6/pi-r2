@@ -367,6 +367,9 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
                 if (!alias) {
                     throw types.errorValue(ERR_IMAGE.METHOD_NAME, name);
                 }
+                const errorParameters = (value: unknown) => {
+                    throw types.errorMessage(alias, ERR_MESSAGE.PARAMETERS, JSON.stringify(value));
+                };
                 switch (alias) {
                     case 'composite': {
                         const [src, x, y, opts] = args;
@@ -374,16 +377,65 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
                             this.handler.composite(await jimp.Jimp.read(src), x, y, opts as undefined);
                         }
                         else {
-                            throw types.errorValue(ERR_MESSAGE.PARAMETERS, alias);
+                            errorParameters(args);
                         }
                         break;
                     }
                     case 'background':
-                        this.background(args.length === 1 ? args[0] as number : args as [number, number, number, number]);
+                        if (args.length === 4) {
+                            this.background(args as [number, number, number, number]);
+                            break;
+                        }
+                        if (args.length === 1) {
+                            if (typeof args[0] === 'number') {
+                                this.background(args[0]);
+                                break;
+                            }
+                            if (Array.isArray(args[0])) {
+                                this.background(args[0] as [number, number, number, number]);
+                                break;
+                            }
+                        }
+                        errorParameters(args);
                         break;
-                    default:
-                        (this.handler[alias] as FunctionType<jimp.JimpInstance>)(...args);
+                    case 'sepia':
+                    case 'normalize':
+                    case 'invert':
+                    case 'greyscale':
+                    case 'dither':
+                        this.handler[alias]();
                         break;
+                    default: {
+                        const arg = args.shift();
+                        switch (alias) {
+                            case 'blur':
+                            case 'gaussian':
+                            case 'brightness':
+                            case 'contrast':
+                            case 'posterize':
+                            case 'opacity':
+                            case 'fade':
+                                if (types.isPlainObject(arg)) {
+                                    errorParameters(args);
+                                }
+                                this.handler[alias](+(arg as string));
+                                break;
+                            case 'pixelate':
+                            case 'convolute':
+                                (this.handler[alias] as FunctionType<jimp.JimpInstance>)(arg);
+                                break;
+                            default:
+                                if (!types.isPlainObject(arg)) {
+                                    errorParameters(arg);
+                                }
+                                (this.handler[alias] as FunctionType<jimp.JimpInstance>)(arg);
+                                break;
+                        }
+                        break;
+                    }
+                }
+                if (args.length > 0) {
+                    this.instance.addLog(this.instance.statusType.WARN, ERR_MESSAGE.PARAMETERS + `: ${args.join(', ')}`, alias);
                 }
             }
             catch (err) {
@@ -929,7 +981,7 @@ class Jimp extends Image {
                             try {
                                 child_process.execFile(util.getWebP_bin('gif2webp', webp_path), args, { shell: true, signal: this.signal, ...execOptions(this.settings) }, (err, stdout) => {
                                     if (!err) {
-                                        this.addLog(types.STATUS_TYPE.INFO, stdout);
+                                        this.addLog(this.statusType.INFO, stdout);
                                         finalize(webp);
                                     }
                                     else {
