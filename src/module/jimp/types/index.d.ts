@@ -14,6 +14,7 @@ export interface JimpSettings extends ImageSettings {
         cache_expires?: number | string;
         rotate_clockwise?: boolean;
         gifwrap_quantize?: "dekker" | "sorokin" | "wu" | "none";
+        read_options?: ObjectMap<AnyObject>;
     };
 }
 

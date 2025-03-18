@@ -9,6 +9,8 @@ import type { WebpMux } from '@e-mc/image/types';
 
 import type { IJimpHandler, JimpImageConstructor, JimpSettings, ResultCallback } from './types';
 
+import type { DecodeJpegOptions } from "@jimp/js-jpeg";
+
 import type * as gw from 'gifwrap';
 
 import path = require('node:path');
@@ -112,8 +114,9 @@ function getMethodName(value: string) {
     }
 }
 
-async function performCommand(host: IHost | null, instance: Jimp, localUri: string, command: string, outputType: string, outputAs: string, buffer?: string | Buffer | null, parent?: ExternalAsset) {
-    return jimp.Jimp.read(buffer || localUri).then(async img => {
+async function performCommand(host: IHost | null, instance: Jimp, localUri: string, command: string, outputType: string, outputAs: string, { buffer, mimeType, parent }: { buffer?: string | Buffer | null; mimeType?: string; parent?: ExternalAsset } = {}) {
+    const options = mimeType ? instance.settings.jimp?.read_options?.[mimeType] : undefined;
+    return jimp.Jimp.read(buffer || localUri, types.isPlainObject<DecodeJpegOptions>(options) ? { [mimeType as "image/jpeg"]: options } : undefined).then(async img => {
         return await transformCommand(
             localUri,
             new JimpHandler(img as jimp.JimpInstance, instance, host),
@@ -185,7 +188,7 @@ async function setImageCache(instance: Jimp, tempKey: string, tempFile: string, 
         else {
             stored[tempKey] = { tempKey, tempFile, ctimeMs: Date.now() };
         }
-        if (instance.settings.jimp!.cache_expires) {
+        if (instance.settings.jimp?.cache_expires) {
             fs.writeFile(tempFile + '.json', JSON.stringify(stored[tempKey]), 'utf8', () => {});
         }
     }
@@ -291,6 +294,7 @@ function getJPEGOptions(instance: Jimp, output: string) {
         switch (path.extname(output).toLowerCase()) {
             case '.jpeg':
             case '.jpg':
+            case '.jpe':
                 break;
             default:
                 if (instance.outputType === jimp.JimpMime.jpeg) {
@@ -759,7 +763,7 @@ class Jimp extends Image {
         }
         instance.formatMessage(Image.LOG_TYPE.IMAGE, STRINGS.MODULE_NAME, [STRINGS.TRANSFORM, filename], command);
         Image.initCpuUsage(instance);
-        return performCommand(null, instance, file, command, outputType, outputAs)
+        return performCommand(null, instance, file, command, outputType, outputAs, { mimeType: options.mimeType })
             .then(async handler => {
                 const result = await handler.getBuffer(options.tempFile, saveAs);
                 instance.flushLog();
@@ -885,7 +889,7 @@ class Jimp extends Image {
             };
             const transformBuffer = (bmpFile?: Bufferable) => {
                 startMessage();
-                performCommand(host, this, localUri, command, bmpFile ? jimp.JimpMime.bmp : outputType, outputAs, bmpFile || file.buffer, file)
+                performCommand(host, this, localUri, command, bmpFile ? jimp.JimpMime.bmp : outputType, outputAs, { buffer: bmpFile || file.buffer, mimeType, parent: file })
                     .then(img => {
                         if (typeof bmpFile === 'string') {
                             removeFile(bmpFile);
@@ -957,11 +961,10 @@ class Jimp extends Image {
                                 for (let i = 0, length = gif2webp.length; i < length; ++i) {
                                     const arg = gif2webp[i];
                                     switch (arg) {
-                                        case '-h':
-                                        case '-version':
-                                            continue;
                                         case '-o':
                                             ++i;
+                                        case '-h':
+                                        case '-version':
                                             continue;
                                         case '-q':
                                         case '-m':
