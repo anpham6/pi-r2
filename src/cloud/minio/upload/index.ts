@@ -187,14 +187,14 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
                     if (first) {
                         let length = -1;
                         if (isPlainObject(tags) && (length = Object.keys(tags).length) > 0) {
-                            minio.setObjectTagging(bucketName, objectName, tags, { versionId: '' })
+                            minio.setObjectTagging(bucketName, objectName, tags)
                                 .then(() => {
                                     this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.CREATE_TAG, bucketName], objectName, { ...Cloud.LOG_CLOUD_COMMAND });
                                 })
                                 .catch(addLog);
                         }
                         else if (tags === false || length === 0) {
-                            minio.removeObjectTagging(bucketName, objectName, { versionId: '' })
+                            minio.removeObjectTagging(bucketName, objectName, {} as { versionId: string })
                                 .then(() => {
                                     this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.DELETE_TAG, bucketName], objectName, { ...Cloud.LOG_CLOUD_COMMAND });
                                 })
