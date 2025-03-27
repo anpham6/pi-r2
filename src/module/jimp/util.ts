@@ -2,29 +2,23 @@ import path = require('node:path');
 import fs = require('node:fs');
 import types = require('@e-mc/types');
 
-import jimp = require('jimp');
-
 import Image = require('@e-mc/image');
 
-const enum STRINGS {
-    MIME_WEBP = 'image/webp'
-}
-
 export const MIME_INPUT = new Set([
-    jimp.JimpMime.png,
-    jimp.JimpMime.jpeg,
-    jimp.JimpMime.bmp,
-    jimp.JimpMime.gif,
-    jimp.JimpMime.tiff,
-    STRINGS.MIME_WEBP as string
+    Image.MIME_PNG,
+    Image.MIME_JPEG,
+    Image.MIME_BMP,
+    Image.MIME_GIF,
+    Image.MIME_TIFF,
+    Image.MIME_WEBP
 ]);
 
 export const MIME_OUTPUT = new Set([
-    jimp.JimpMime.png,
-    jimp.JimpMime.jpeg,
-    jimp.JimpMime.bmp,
-    jimp.JimpMime.gif,
-    STRINGS.MIME_WEBP as string
+    Image.MIME_PNG,
+    Image.MIME_JPEG,
+    Image.MIME_BMP,
+    Image.MIME_GIF,
+    Image.MIME_WEBP
 ]);
 
 export function parseFormat(command: string, mimeType?: string, gif?: boolean): [string, string, string] {
@@ -39,20 +33,18 @@ export function parseFormat(command: string, mimeType?: string, gif?: boolean): 
                         saveAs = 'jpg';
                         break;
                     case 'webp':
-                        if (mimeType === jimp.JimpMime.jpeg) {
-                            mime = jimp.JimpMime.jpeg;
+                        mime = mimeType!;
+                        if (mimeType === Image.MIME_JPEG) {
                             saveAs = 'jpg';
                         }
-                        else if (gif && mimeType === jimp.JimpMime.gif) {
-                            mime = jimp.JimpMime.gif;
+                        else if (gif && mimeType === Image.MIME_GIF) {
                             saveAs = 'gif';
                         }
-                        else if (mimeType === jimp.JimpMime.png) {
-                            mime = jimp.JimpMime.png;
+                        else if (mimeType === Image.MIME_PNG) {
                             saveAs = 'png';
                         }
                         else {
-                            mime = jimp.JimpMime.bmp;
+                            mime = Image.MIME_BMP;
                             saveAs = 'bmp';
                         }
                         outputAs = 'webp';
