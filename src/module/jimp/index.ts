@@ -29,7 +29,7 @@ import util = require('./util');
 
 const Image = require('@e-mc/image') as JimpImageConstructor<IFileManager>;
 
-const kJimp = Symbol.for('jimp:instanceof');
+const kJimp = Symbol.for('jimp:constructor');
 
 let WEBPMUX: WebpMux | null = null,
     WEBPMUX_INIT = false;
