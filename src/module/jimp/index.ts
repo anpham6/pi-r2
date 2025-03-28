@@ -52,7 +52,6 @@ interface CacheData {
 
 const enum STRINGS {
     MODULE_NAME = 'jimp',
-    MIME_WEBP = 'image/webp',
     TRANSFORM = 'Transforming image...'
 }
 
@@ -152,7 +151,7 @@ async function transformCommand(localFile: string, handler: JimpHandler, command
     await handler.method();
     handler.resize();
     handler.crop();
-    if (outputType !== jimp.JimpMime.jpeg) {
+    if (outputType !== Image.MIME_JPEG) {
         handler.opacity();
     }
     switch (handler.rotateCount) {
@@ -297,7 +296,7 @@ function getJPEGOptions(instance: Jimp, output: string) {
             case '.jpe':
                 break;
             default:
-                if (instance.outputType === jimp.JimpMime.jpeg) {
+                if (instance.outputType === Image.MIME_JPEG) {
                     break;
                 }
                 return;
@@ -316,9 +315,6 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
         public handler: T,
         public instance: Jimp,
         private readonly _host: IHost | null = null) {
-    }
-    quality?(): void {
-        throw new Error('Method not implemented.');
     }
 
     async rotate(localFile?: string, callback?: ResultCallback<string>) {
@@ -491,22 +487,23 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
                 handler.scaleToFit({ w, h });
                 break;
             default: {
-                let mode: jimp.ResizeStrategy = jimp.ResizeStrategy.NEAREST_NEIGHBOR;
-                if (data.algorithm) {
-                    switch (data.algorithm) {
-                        case 'bilinear':
-                            mode = jimp.ResizeStrategy.BILINEAR;
-                            break;
-                        case 'bicubic':
-                            mode = jimp.ResizeStrategy.BICUBIC;
-                            break;
-                        case 'hermite':
-                            mode = jimp.ResizeStrategy.HERMITE;
-                            break;
-                        case 'bezier':
-                            mode = jimp.ResizeStrategy.BEZIER;
-                            break;
-                    }
+                let mode: jimp.ResizeStrategy;
+                switch (data.algorithm) {
+                    case 'bilinear':
+                        mode = jimp.ResizeStrategy.BILINEAR;
+                        break;
+                    case 'bicubic':
+                        mode = jimp.ResizeStrategy.BICUBIC;
+                        break;
+                    case 'hermite':
+                        mode = jimp.ResizeStrategy.HERMITE;
+                        break;
+                    case 'bezier':
+                        mode = jimp.ResizeStrategy.BEZIER;
+                        break;
+                    default:
+                        mode = jimp.ResizeStrategy.NEAREST_NEIGHBOR;
+                        break;
                 }
                 const options = { mode } as jimp.ResizeOptions;
                 if (w < Infinity) {
@@ -685,13 +682,13 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
     }
     writeAs(value: string) {
         switch (this.instance.outputType) {
-            case jimp.JimpMime.jpeg:
+            case Image.MIME_JPEG:
                 return types.renameExt(value, 'jpg');
-            case jimp.JimpMime.png:
+            case Image.MIME_PNG:
                 return types.renameExt(value, 'png');
-            case jimp.JimpMime.gif:
+            case Image.MIME_GIF:
                 return types.renameExt(value, 'gif');
-            case jimp.JimpMime.bmp:
+            case Image.MIME_BMP:
                 return types.renameExt(value, 'bmp');
             default:
                 return value;
@@ -889,7 +886,7 @@ class Jimp extends Image {
             };
             const transformBuffer = (bmpFile?: Bufferable) => {
                 startMessage();
-                performCommand(host, this, localUri, command, bmpFile ? jimp.JimpMime.bmp : outputType, outputAs, { buffer: bmpFile || file.buffer, mimeType, parent: file })
+                performCommand(host, this, localUri, command, bmpFile ? Image.MIME_BMP : outputType, outputAs, { buffer: bmpFile || file.buffer, mimeType, parent: file })
                     .then(img => {
                         if (typeof bmpFile === 'string') {
                             removeFile(bmpFile);
@@ -898,7 +895,7 @@ class Jimp extends Image {
                             this.writeFail([ERR_IMAGE.FINALIZE, STRINGS.MODULE_NAME], err, { type: LOG_TYPE.IMAGE, startTime });
                             resolve();
                         };
-                        if (outputType === jimp.JimpMime.gif) {
+                        if (outputType === Image.MIME_GIF) {
                             try {
                                 const { GifUtil, GifFrame } = gifwrap;
                                 const frame = new GifFrame(img.handler.bitmap);
@@ -936,8 +933,8 @@ class Jimp extends Image {
             const startMessage = () => {
                 host.formatMessage(LOG_TYPE.IMAGE, STRINGS.MODULE_NAME, [STRINGS.TRANSFORM, path.basename(localUri)], command);
             };
-            if (mimeType === jimp.JimpMime.gif) {
-                if (outputType === jimp.JimpMime.gif || outputType === STRINGS.MIME_WEBP) {
+            if (mimeType === Image.MIME_GIF) {
+                if (outputType === Image.MIME_GIF || outputType === Image.MIME_WEBP) {
                     const cmd = this.parseCommand(command);
                     const transformWebP = (target: string, modified: boolean) => {
                         if (outputAs === 'webp') {
@@ -1019,7 +1016,7 @@ class Jimp extends Image {
                                         const bitmap = bmp.encode(frame.bitmap).data;
                                         const instance = await jimp.Jimp.read(bitmap) as jimp.JimpInstance;
                                         const handler = new JimpHandler(instance, this);
-                                        return transformCommand(localUri, handler, cmd, jimp.JimpMime.gif);
+                                        return transformCommand(localUri, handler, cmd, Image.MIME_GIF);
                                     }))
                                     .then(items => {
                                         const quantize = this.settings.jimp?.gifwrap_quantize || '';
@@ -1063,7 +1060,7 @@ class Jimp extends Image {
                     transformBuffer();
                 }
             }
-            else if (mimeType === STRINGS.MIME_WEBP) {
+            else if (mimeType === Image.MIME_WEBP) {
                 const tryWebpMux = async () => {
                     try {
                         const webp = new (WEBPMUX ||= require('node-webpmux') as WebpMux).Image();
@@ -1072,7 +1069,7 @@ class Jimp extends Image {
                             WEBPMUX_INIT = true;
                         }
                         await webp.load(host.getBuffer(file)!);
-                        if (!(webp.hasAnim && (outputType === STRINGS.MIME_WEBP || outputType === jimp.JimpMime.gif))) {
+                        if (!(webp.hasAnim && (outputType === Image.MIME_WEBP || outputType === Image.MIME_GIF))) {
                             const buffer = Image.toABGR(await (!webp.hasAnim ? webp.getImageData() : webp.getFrameData(0)));
                             const bitmap = bmp.encode({ width: webp.width, height: webp.height, data: buffer }).data;
                             transformBuffer(bitmap);
@@ -1087,11 +1084,11 @@ class Jimp extends Image {
                                 const instance = await jimp.Jimp.read(bitmap) as jimp.JimpInstance;
                                 const handler = new JimpHandler(instance, this);
                                 handler.background(webp.anim.bgColor);
-                                return transformCommand(localUri, handler, cmd, jimp.JimpMime.bmp);
+                                return transformCommand(localUri, handler, cmd, Image.MIME_BMP);
                             }))
                             .then(items => {
                                 const length = items.length;
-                                if (outputType === jimp.JimpMime.gif) {
+                                if (outputType === Image.MIME_GIF) {
                                     try {
                                         const { GifFrame, GifUtil, BitmapImage } = gifwrap;
                                         const quantize = this.settings.jimp?.gifwrap_quantize || '';

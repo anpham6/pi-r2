@@ -20,9 +20,8 @@ export interface JimpSettings extends ImageSettings {
 
 export type ResultCallback<T = unknown, U = void, V = unknown> = (err: V, result: T) => U;
 
-export interface IJimpHandler<T extends IHost = IHost, U extends ImageModule = ImageModule<JimpSettings>, V = JimpInstance> extends ImageHandler<V, T, IImage<T, U>, Promise<void>> {
+export interface IJimpHandler<T extends IHost = IHost, U extends ImageModule = ImageModule<JimpSettings>, V = JimpInstance> extends ImageHandler<V, T, IImage<T, U>, Promise<void>, Promise<void>> {
     outFile: string;
-    method(): Promise<void>;
     rotate(localFile?: string, callback?: ResultCallback<string>): Promise<this>;
     background(value: number | [number, number, number, number]): void;
 }

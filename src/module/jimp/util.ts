@@ -73,14 +73,14 @@ export function renameExt(output: string, ext: string, replace?: boolean) {
 }
 
 export function normalizePath(value: string) {
-    return '"' + value.replace(/"/g, '\\"') + '"';
+    return `"${value.replace(/"/g, '\\"')}"`;
 }
 
 export function getWebP_bin(name: string, pathname: string | undefined): string {
     if (pathname && fs.existsSync(pathname)) {
         name += Image.PLATFORM_WIN32 ? '.exe' : '';
         const bin = path.join(pathname, name);
-        return Image.sanitizeCmd(fs.existsSync(bin) ? bin : path.join(pathname, 'bin', name));
+        return types.sanitizeCmd(fs.existsSync(bin) ? bin : path.join(pathname, 'bin', name));
     }
     return require(name + '-bin');
 }
