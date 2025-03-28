@@ -18,8 +18,8 @@ import { errorMessage, importESM, isPlainObject } from '@e-mc/types';
 
 interface ImageminModule extends CompressModule {
     imagemin?: {
-        jpegtran?: AnyObject;
         mozjpeg?: AnyObject;
+        jpegtran?: AnyObject;
         pngquant?: AnyObject;
         optipng?: AnyObject;
         webp?: AnyObject;
@@ -47,9 +47,16 @@ const PLUGIN_MAP: ObjectMap<FunctionType> = Object.freeze({
     'imagemin-svgo': svgo
 });
 
-export default function compress(this: ICompress<ImageminModule> | undefined, options: AnyObject | undefined, mimeType?: string) {
-    let plugin = options?.__plugin__ as string | undefined,
+export default function compress(this: ICompress<ImageminModule> | undefined, options: AnyObject & { __package__?: string } | undefined, mimeType?: string) {
+    let plugin: string | undefined,
         settings: ImageminModule["imagemin"] | undefined;
+    if (options && (plugin = options.__package__)) {
+        options = { ...options };
+        delete options.__package__;
+        if (Object.keys(options).length === 0) {
+            options = undefined;
+        }
+    }
     if (isPlainObject<CompressModule>(this?.module) && (settings = this.module.imagemin) && !plugin) {
         switch (mimeType) {
             case 'image/jpeg':
@@ -84,10 +91,9 @@ export default function compress(this: ICompress<ImageminModule> | undefined, op
                 case 'image/svg+xml':
                     plugin = 'svgo';
                     break;
+                default:
+                    return Promise.reject(errorMessage('imagemin', 'Missing plugin name', mimeType));
             }
-        }
-        if (!plugin) {
-            return Promise.reject(errorMessage('imagemin', 'Missing plugin name', mimeType));
         }
         const transform = PLUGIN_MAP[plugin] || await importESM(plugin, true);
         if (typeof transform !== 'function') {
