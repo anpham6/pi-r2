@@ -3,6 +3,8 @@
 import type { ICompress } from '@e-mc/types/lib';
 import type { CompressModule } from '@e-mc/types/lib/settings';
 
+import { ERR_MESSAGE } from '@e-mc/types/constant';
+
 import jpegtran from 'imagemin-jpegtran';
 import mozjpeg from 'imagemin-mozjpeg';
 import pngquant from 'imagemin-pngquant';
@@ -92,13 +94,13 @@ export default function compress(this: ICompress<ImageminModule> | undefined, op
                     plugin = 'svgo';
                     break;
                 default:
-                    return Promise.reject(errorMessage('imagemin', 'Missing plugin name', mimeType));
+                    return Promise.reject(errorMessage('imagemin', ERR_MESSAGE.NOTFOUND_PACKAGE, mimeType));
             }
         }
         const transform = PLUGIN_MAP[plugin] || await importESM(plugin, true);
         if (typeof transform !== 'function') {
-            return Promise.reject(errorMessage('imagemin', 'Invalid transform function', plugin));
+            return Promise.reject(errorMessage('imagemin', ERR_MESSAGE.FUNCTION, plugin));
         }
-        return (transform(options || settings?.[plugin.replace(/^imagemin-/, '') as "jpegtran"]) as Plugin)(data);
+        return (transform(options || settings?.[plugin as "jpegtran"] || settings?.[plugin.replace(/^imagemin-/, '') as "jpegtran"]) as Plugin)(data);
     };
 }
