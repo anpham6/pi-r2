@@ -8,13 +8,14 @@ import { parentPort, workerData } from 'node:worker_threads';
 
 import jimp = require('jimp');
 
+import Image = require('@e-mc/image');
 import Jimp = require('@pi-r2/jimp');
 
 const PORT: MessagePort = workerData[0];
 
 parentPort!.on('message', (value: WorkerMessage<jimp.JPEGOptions>) => {
     const { data, commandData, outputType, output, outputOptions } = value;
-    jimp.Jimp.read(data)
+    jimp.Jimp.read(typeof data === 'string' ? data : Image.asBuffer(data))
         .then(img => {
             const { method, resize, crop, rotate, opacity = -1 } = commandData;
             if (method) {
