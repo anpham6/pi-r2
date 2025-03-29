@@ -1,3 +1,5 @@
+import type { WorkerAction } from '@e-mc/types/lib/squared';
+
 import type { IFileManager, IHost } from '@e-mc/types/lib';
 import type { ExternalAsset, IFileThread, OutputFinalize } from '@e-mc/types/lib/asset';
 import type { CommandData, CropData, QualityData, ResizeData, RotateData, TransformOptions } from '@e-mc/types/lib/image';
@@ -7,8 +9,9 @@ import type { ImageModule } from '@e-mc/types/lib/settings';
 
 import type { WebpMux } from '@e-mc/image/types';
 
-import type { IJimpHandler, JimpImageConstructor, JimpSettings, ResultCallback } from './types';
+import type { IJimpHandler, JimpImageConstructor, JimpSettings, ResultCallback, WorkerMessage } from './types';
 
+import type { JimpInstance } from 'jimp';
 import type { DecodeJpegOptions } from "@jimp/js-jpeg";
 
 import type * as gw from 'gifwrap';
@@ -21,13 +24,16 @@ import jimp = require('jimp');
 import jimp_utils = require('@jimp/utils');
 import gifwrap = require('gifwrap');
 import bmp = require('bmp-js');
-import types = require('@e-mc/types');
 
 import { ERR_IMAGE, ERR_MESSAGE, LOG_TYPE } from '@e-mc/types/constant';
 
-import util = require('./util');
+import { WorkerChannel } from '@e-mc/core';
 
 const Image = require('@e-mc/image') as JimpImageConstructor<IFileManager>;
+
+import { createAbortError, errorMessage, errorValue, isPlainObject, isString, parseExpires, renameExt } from '@e-mc/types';
+
+import util = require('./util');
 
 const kJimp = Symbol.for('jimp:constructor');
 
@@ -55,11 +61,23 @@ const enum STRINGS {
     TRANSFORM = 'Transforming image...'
 }
 
+function createWorker(filename: string) {
+    const { PIR2_JIMP_WORKER_MIN: min, PIR2_JIMP_WORKER_MAX: max, PIR2_JIMP_WORKER_TIMEOUT: timeout } = process.env;
+    const result = new WorkerChannel(path.join(__dirname, 'worker', filename), undefined, max ? parseInt(max) : undefined, timeout ? parseInt(timeout) * 1000 : undefined);
+    if (min) {
+        result.min = parseInt(min);
+    }
+    return result;
+}
+
 const CACHE_TRANSFORM: ObjectMap<CacheData> = {};
+const WORKER = Object.freeze({
+    jimp: createWorker('jimp.js')
+});
 let CACHE_INIT = false;
 let TEMP_DIR = '';
 
-const METHOD_ALIAS = {
+const METHOD_ALIAS = Object.freeze({
     contain: 'ct',
     cover: 'cv',
     resize: 're',
@@ -95,7 +113,8 @@ const METHOD_ALIAS = {
     fisheye: 'fe',
     threshold: 'th',
     quantize: 'qu'
-};
+});
+const METHOD_NONE = Object.freeze(['sepia', 'normalize', 'invert', 'greyscale', 'dither']);
 
 type MethodName = keyof typeof METHOD_ALIAS;
 
@@ -113,12 +132,12 @@ function getMethodName(value: string) {
     }
 }
 
-async function performCommand(host: IHost | null, instance: Jimp, localUri: string, command: string, outputType: string, outputAs: string, { buffer, mimeType, parent }: { buffer?: string | Buffer | null; mimeType?: string; parent?: ExternalAsset } = {}) {
+async function performCommand(host: IHost | null, instance: Jimp, localUri: string, command: string | CommandData, outputType: string, outputAs: string, { buffer, mimeType, parent }: { buffer?: string | Buffer | null; mimeType?: string; parent?: ExternalAsset } = {}) {
     const options = mimeType ? instance.settings.jimp?.read_options?.[mimeType] : undefined;
-    return jimp.Jimp.read(buffer || localUri, types.isPlainObject<DecodeJpegOptions>(options) ? { [mimeType as "image/jpeg"]: options } : undefined).then(async img => {
-        return await transformCommand(
+    return jimp.Jimp.read(buffer || localUri, isPlainObject<DecodeJpegOptions>(options) ? { [mimeType as "image/jpeg"]: options } : undefined).then(async img => {
+        return transformCommand(
             localUri,
-            new JimpHandler(img as jimp.JimpInstance, instance, host),
+            new JimpHandler(img as JimpInstance, instance, host),
             command,
             outputType,
             outputAs,
@@ -131,7 +150,7 @@ function execOptions(settings: JimpSettings) {
     const exec = settings.jimp?.exec;
     let uid: number | undefined,
         gid: number | undefined;
-    if (types.isPlainObject<ExecAction>(exec)) {
+    if (isPlainObject<ExecAction>(exec)) {
         let { uid: u, gid: g } = exec;
         if ((u = parseInt(u as string)) >= 0) {
             uid = u;
@@ -156,19 +175,23 @@ async function transformCommand(localFile: string, handler: JimpHandler, command
     }
     switch (handler.rotateCount) {
         case 0:
-            return handler;
+            break;
         case 1:
-            return handler.rotate();
+            await handler.rotate();
+            break;
+        default:
+            await handler.rotate(localFile, (err, result) => {
+                if (!err) {
+                    try {
+                        handler.host?.add(result, parent);
+                    }
+                    catch {
+                    }
+                }
+            });
+            break;
     }
-    return handler.rotate(localFile, (err, result) => {
-        if (!err) {
-            try {
-                handler.host?.add(result, parent);
-            }
-            catch {
-            }
-        }
-    });
+    return handler;
 }
 
 async function setImageCache(instance: Jimp, tempKey: string, tempFile: string, output: Bufferable, localFile?: string) {
@@ -224,7 +247,7 @@ function getCacheData(instance: Jimp) {
     if (!CACHE_INIT) {
         TEMP_DIR = instance.getTempDir({ moduleDir: true, increment: 5 });
         const settings = instance.settings.jimp ||= {};
-        const expires = types.parseExpires(settings.cache_expires || 0);
+        const expires = parseExpires(settings.cache_expires || 0);
         if (expires === 0) {
             settings.cache_expires = 0;
         }
@@ -240,7 +263,7 @@ function getCacheData(instance: Jimp) {
                             const pathname = path.join(TEMP_DIR, item.name);
                             try {
                                 const data = JSON.parse(fs.readFileSync(pathname, 'utf8')) as unknown;
-                                if (types.isPlainObject<CacheData>(data) && fs.existsSync(data.tempFile)) {
+                                if (isPlainObject<CacheData>(data) && fs.existsSync(data.tempFile)) {
                                     if (data.ctimeMs + expires > current) {
                                         CACHE_TRANSFORM[data.tempKey] = data;
                                         return;
@@ -288,27 +311,28 @@ function removeFile(pathname: string) {
     fs.unlink(pathname, () => {});
 }
 
-function getJPEGOptions(instance: Jimp, output: string) {
-    if (instance.qualityData) {
+function getJPEGOptions(data: Optional<QualityData>, output: string, outputType: string) {
+    if (data) {
         switch (path.extname(output).toLowerCase()) {
             case '.jpeg':
             case '.jpg':
             case '.jpe':
                 break;
             default:
-                if (instance.outputType === Image.MIME_JPEG) {
+                if (outputType === Image.MIME_JPEG) {
                     break;
                 }
                 return;
         }
-        return { quality: instance.qualityData.value } as jimp.JPEGOptions;
+        return { quality: data.value } as jimp.JPEGOptions;
     }
 }
 
 const hasTransform = (cmd: CommandData) => !!(cmd.rotate || cmd.resize || cmd.crop || cmd.method || typeof cmd.opacity === 'number' && cmd.opacity >= 0 && cmd.opacity < 1);
+const isUnsupported = (value: string) => value === Image.MIME_GIF || value === Image.MIME_WEBP;
 const emptyResult = <T>(options: TransformOptions) => (options.tempFile ? '' : null) as T;
 
-class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJimpHandler<IFileManager, ImageModule<JimpSettings>, T> {
+class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler<IFileManager, ImageModule<JimpSettings>, T> {
     outFile = '';
 
     constructor(
@@ -320,41 +344,30 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
     async rotate(localFile?: string, callback?: ResultCallback<string>) {
         const data = this.instance.rotateData;
         if (!data || this.aborted) {
-            return this;
+            return;
         }
-        const { values, color } = data;
-        const handler = this.handler;
-        if (!isNaN(color)) {
-            handler.background = color;
+        if (!localFile) {
+            Jimp.applyRotate(this.handler, data);
+            return;
         }
+        Jimp.applyBackground(this.handler, data);
+        const leading = localFile.substring(0, localFile.lastIndexOf('.') + 1);
+        const ext = path.extname(localFile);
         const tasks: Promise<void>[] = [];
-        const length = values.length;
-        const deg = values[0];
-        if (length > 1 && localFile) {
-            const leading = localFile.substring(0, localFile.lastIndexOf('.') + 1);
-            const ext = path.extname(localFile);
-            for (let i = 1; i < length; ++i) {
-                const value = values[i];
-                const img = handler.clone().rotate(value);
-                const output = leading + value + ext;
-                tasks.push(
-                    img.write(output as "jimp.png")
-                        .then(() => {
-                            this.finalize(output, callback);
-                        })
-                        .catch((err: unknown) => {
-                            this.instance.writeFail([ERR_IMAGE.ROTATE, STRINGS.MODULE_NAME], err, LOG_TYPE.IMAGE);
-                        })
-                );
-            }
+        for (const value of data.values) {
+            const img = this.handler.clone().rotate(value);
+            const output = leading + value + ext;
+            tasks.push(
+                img.write(output as "jimp.png")
+                    .then(() => {
+                        this.finalize(output, callback);
+                    })
+                    .catch((err: unknown) => {
+                        this.instance.writeFail([ERR_IMAGE.ROTATE, STRINGS.MODULE_NAME], err, LOG_TYPE.IMAGE);
+                    })
+            );
         }
-        if (deg) {
-            handler.rotate(deg);
-        }
-        if (tasks.length > 0) {
-            return Promise.all(tasks).then(() => this);
-        }
-        return this;
+        await Promise.all(tasks);
     }
     async method() {
         const data = this.instance.methodData;
@@ -365,15 +378,15 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
             try {
                 const alias = getMethodName(name);
                 if (!alias) {
-                    throw types.errorValue(ERR_IMAGE.METHOD_NAME, name);
+                    throw errorValue(ERR_IMAGE.METHOD_NAME, name);
                 }
                 const errorParameters = (value: unknown) => {
-                    throw types.errorMessage(alias, ERR_MESSAGE.PARAMETERS, JSON.stringify(value));
+                    throw errorMessage(alias, ERR_MESSAGE.PARAMETERS, JSON.stringify(value));
                 };
                 switch (alias) {
                     case 'composite': {
                         const [src, x, y, opts] = args;
-                        if (types.isString(src) && typeof x === 'number' && typeof y === 'number') {
+                        if (isString(src) && typeof x === 'number' && typeof y === 'number') {
                             this.handler.composite(await jimp.Jimp.read(src), x, y, opts as undefined);
                         }
                         else {
@@ -398,14 +411,11 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
                         }
                         errorParameters(args);
                         break;
-                    case 'sepia':
-                    case 'normalize':
-                    case 'invert':
-                    case 'greyscale':
-                    case 'dither':
-                        this.handler[alias]();
-                        break;
                     default: {
+                        if (METHOD_NONE.includes(alias)) {
+                            this.handler[alias]();
+                            break;
+                        }
                         const arg = args.shift();
                         switch (alias) {
                             case 'blur':
@@ -415,20 +425,20 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
                             case 'posterize':
                             case 'opacity':
                             case 'fade':
-                                if (types.isPlainObject(arg)) {
+                                if (isPlainObject(arg)) {
                                     errorParameters(args);
                                 }
                                 this.handler[alias](+(arg as string));
                                 break;
                             case 'pixelate':
                             case 'convolute':
-                                (this.handler[alias] as FunctionType<jimp.JimpInstance>)(arg);
+                                (this.handler[alias] as FunctionType<JimpInstance>)(arg);
                                 break;
                             default:
-                                if (!types.isPlainObject(arg)) {
+                                if (!isPlainObject(arg)) {
                                     errorParameters(arg);
                                 }
-                                (this.handler[alias] as FunctionType<jimp.JimpInstance>)(arg);
+                                (this.handler[alias] as FunctionType<JimpInstance>)(arg);
                                 break;
                         }
                         break;
@@ -448,74 +458,7 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
         if (!data || this.aborted) {
             return;
         }
-        const { width: w, height: h } = data;
-        const handler = this.handler;
-        if (!isNaN(data.color)) {
-            handler.background = data.color;
-        }
-        let align = 0;
-        switch (data.align[0]) {
-            case 'left':
-                align |= jimp.HorizontalAlign.LEFT;
-                break;
-            case 'center':
-                align |= jimp.HorizontalAlign.CENTER;
-                break;
-            case 'right':
-                align |= jimp.HorizontalAlign.RIGHT;
-                break;
-        }
-        switch (data.align[1]) {
-            case 'top':
-                align |= jimp.VerticalAlign.TOP;
-                break;
-            case 'middle':
-                align |= jimp.VerticalAlign.MIDDLE;
-                break;
-            case 'bottom':
-                align |= jimp.VerticalAlign.BOTTOM;
-                break;
-        }
-        switch (data.mode) {
-            case 'contain':
-                handler.contain({ w, h, align: align > 0 ? align : undefined });
-                break;
-            case 'cover':
-                handler.cover({ w, h, align: align > 0 ? align : undefined });
-                break;
-            case 'scale':
-                handler.scaleToFit({ w, h });
-                break;
-            default: {
-                let mode: jimp.ResizeStrategy;
-                switch (data.algorithm) {
-                    case 'bilinear':
-                        mode = jimp.ResizeStrategy.BILINEAR;
-                        break;
-                    case 'bicubic':
-                        mode = jimp.ResizeStrategy.BICUBIC;
-                        break;
-                    case 'hermite':
-                        mode = jimp.ResizeStrategy.HERMITE;
-                        break;
-                    case 'bezier':
-                        mode = jimp.ResizeStrategy.BEZIER;
-                        break;
-                    default:
-                        mode = jimp.ResizeStrategy.NEAREST_NEIGHBOR;
-                        break;
-                }
-                const options = { mode } as jimp.ResizeOptions;
-                if (w < Infinity) {
-                    options.w = w;
-                }
-                if (h < Infinity) {
-                    options.h = h;
-                }
-                handler.resize(options);
-                break;
-            }
-        }
+        Jimp.applyResize(this.handler, data);
     }
     background(value: number | [number, number, number, number]) {
         this.handler.background = Array.isArray(value) ? jimp_utils.rgbaToInt(...value) : value;
@@ -612,7 +555,7 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
             return emptyData();
         }
         return new Promise<Bufferable | null>(resolve => {
-            this.handler.write(output as "jimp.jpg", getJPEGOptions(this.instance, output))
+            this.handler.write(output as "jimp.jpg", getJPEGOptions(this.instance.qualityData, output, this.instance.outputType))
                 .then(() => {
                     this.finalize(output, (error, result) => {
                         if (error) {
@@ -645,9 +588,12 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
         });
     }
     crop() {
+        if (this.aborted) {
+            return;
+        }
         const data = this.instance.cropData;
-        if (data && !this.aborted) {
-            this.handler.crop({ x: data.x, y: data.y, w: data.width, h: data.height });
+        if (data) {
+            Jimp.applyCrop(this.handler, data);
         }
     }
     opacity() {
@@ -659,7 +605,7 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
     async write(output: string, callback?: ResultCallback<string>) {
         if (this.aborted) {
             if (callback) {
-                callback(types.createAbortError(), '');
+                callback(createAbortError(), '');
             }
             return;
         }
@@ -667,7 +613,7 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
             this.outFile = output;
             output = this.writeAs(output);
         }
-        return this.handler.write(output as "jimp.jpg", getJPEGOptions(this.instance, output))
+        return this.handler.write(output as "jimp.jpg", getJPEGOptions(this.instance.qualityData, output, this.instance.outputType))
             .then(() => {
                 this.finalize(output, callback);
             })
@@ -683,13 +629,13 @@ class JimpHandler<T extends jimp.JimpInstance = jimp.JimpInstance> implements IJ
     writeAs(value: string) {
         switch (this.instance.outputType) {
             case Image.MIME_JPEG:
-                return types.renameExt(value, 'jpg');
+                return renameExt(value, 'jpg');
             case Image.MIME_PNG:
-                return types.renameExt(value, 'png');
+                return renameExt(value, 'png');
             case Image.MIME_GIF:
-                return types.renameExt(value, 'gif');
+                return renameExt(value, 'gif');
             case Image.MIME_BMP:
-                return types.renameExt(value, 'bmp');
+                return renameExt(value, 'bmp');
             default:
                 return value;
         }
@@ -733,7 +679,7 @@ class Jimp extends Image {
         const filename = path.basename(file);
         const broadcastId = options.broadcastId;
         if (broadcastId) {
-            if (types.isPlainObject(broadcastId)) {
+            if (isPlainObject(broadcastId)) {
                 instance.broadcastId = broadcastId.value;
                 if (broadcastId.stripAnsi === false) {
                     instance.supports('stripAnsi', false);
@@ -780,6 +726,89 @@ class Jimp extends Image {
             });
     }
 
+    static applyBackground(instance: JimpInstance, data: { color: number }) {
+        if (!isNaN(data.color)) {
+            instance.background = data.color;
+        }
+    }
+
+    static applyResize(instance: JimpInstance, data: ResizeData) {
+        this.applyBackground(instance, data);
+        const { width: w, height: h } = data;
+        let align = 0;
+        switch (data.align[0]) {
+            case 'left':
+                align |= jimp.HorizontalAlign.LEFT;
+                break;
+            case 'center':
+                align |= jimp.HorizontalAlign.CENTER;
+                break;
+            case 'right':
+                align |= jimp.HorizontalAlign.RIGHT;
+                break;
+        }
+        switch (data.align[1]) {
+            case 'top':
+                align |= jimp.VerticalAlign.TOP;
+                break;
+            case 'middle':
+                align |= jimp.VerticalAlign.MIDDLE;
+                break;
+            case 'bottom':
+                align |= jimp.VerticalAlign.BOTTOM;
+                break;
+        }
+        switch (data.mode) {
+            case 'contain':
+                instance.contain({ w, h, align: align > 0 ? align : undefined });
+                break;
+            case 'cover':
+                instance.cover({ w, h, align: align > 0 ? align : undefined });
+                break;
+            case 'scale':
+                instance.scaleToFit({ w, h });
+                break;
+            default: {
+                let mode: jimp.ResizeStrategy;
+                switch (data.algorithm) {
+                    case 'bilinear':
+                        mode = jimp.ResizeStrategy.BILINEAR;
+                        break;
+                    case 'bicubic':
+                        mode = jimp.ResizeStrategy.BICUBIC;
+                        break;
+                    case 'hermite':
+                        mode = jimp.ResizeStrategy.HERMITE;
+                        break;
+                    case 'bezier':
+                        mode = jimp.ResizeStrategy.BEZIER;
+                        break;
+                    default:
+                        mode = jimp.ResizeStrategy.NEAREST_NEIGHBOR;
+                        break;
+                }
+                const options = { mode } as jimp.ResizeOptions;
+                if (w < Infinity) {
+                    options.w = w;
+                }
+                if (h < Infinity) {
+                    options.h = h;
+                }
+                instance.resize(options);
+                break;
+            }
+        }
+    }
+
+    static applyCrop(instance: JimpInstance, data: CropData) {
+        instance.crop({ x: data.x, y: data.y, w: data.width, h: data.height });
+    }
+
+    static applyRotate(instance: JimpInstance, data: RotateData) {
+        this.applyBackground(instance, data);
+        instance.rotate(data.values[0]);
+    }
+
     protected _moduleName = STRINGS.MODULE_NAME;
     protected _threadable = true;
 
@@ -801,36 +830,56 @@ class Jimp extends Image {
         }
         return data;
     }
+    override parseWorker(command: string | CommandData, outputType: string) {
+        if (typeof command === 'string') {
+            command = this.parseCommand(command);
+        }
+        if (!isUnsupported(outputType)) {
+            const { method, rotate } = command;
+            if (rotate && rotate.values.length > 1) {
+                return null;
+            }
+            if (method) {
+                const values = method.map(item => [getMethodName(item[0]) || item[0], item[1]] as [string, unknown[]?]);
+                if (!values.every(item => METHOD_NONE.includes(item[0]))) {
+                    return null;
+                }
+                command.method = values;
+            }
+            return command;
+        }
+        return null;
+    }
 
-    async using(data: IFileThread, command: string) {
+    async using(data: IFileThread<ExternalAsset & WorkerAction>, command: string) {
         if (this.aborted) {
-            return types.createAbortError(true);
+            return createAbortError(true);
         }
         return new Promise<void>(async (resolve, reject) => {
             const { host, file } = data;
             const localUri = host.getLocalUri(data);
             const mimeType = host.getMimeType(data);
             if (!localUri || !util.MIME_INPUT.has(mimeType)) {
-                reject(types.errorValue(ERR_MESSAGE.UNKNOWN, !localUri ? 'URI' : 'MIME'));
+                reject(errorValue(ERR_MESSAGE.UNKNOWN, !localUri ? 'URI' : 'MIME'));
                 return;
             }
             if (!this.canRead(localUri, { ownPermissionOnly: true })) {
-                reject(types.errorValue(ERR_MESSAGE.UNSUPPORTED_READ, localUri));
+                reject(errorValue(ERR_MESSAGE.UNSUPPORTED_READ, localUri));
                 return;
             }
             const [outputType, saveAs, outputAs] = util.parseFormat(command = command.trim(), mimeType, true);
             if (!outputType) {
-                reject(types.errorValue(ERR_MESSAGE.FORMAT, /^\w+/.exec(command)?.[0] || ERR_MESSAGE.UNKNOWN));
+                reject(errorValue(ERR_MESSAGE.FORMAT, /^\w+/.exec(command)?.[0] || ERR_MESSAGE.UNKNOWN));
                 return;
             }
             const replace = command.includes('@');
             const output = host.addCopy(data.getObject({ command, outputType }), saveAs, replace);
             if (!output) {
-                reject(types.errorValue(ERR_MESSAGE.NOT_COPYABLE, outputType));
+                reject(errorValue(ERR_MESSAGE.NOT_COPYABLE, outputType));
                 return;
             }
             if (!this.canWrite(output, { ownPermissionOnly: true })) {
-                reject(types.errorValue(ERR_MESSAGE.UNSUPPORTED_WRITE, output));
+                reject(errorValue(ERR_MESSAGE.UNSUPPORTED_WRITE, output));
                 return;
             }
             const startTime = process.hrtime();
@@ -875,6 +924,7 @@ class Jimp extends Image {
                     return;
                 }
             }
+            const outputData = this.parseCommand(command);
             const finalize = (value: string) => {
                 if (tempFile && tempKey) {
                     void setImageCache(this, tempKey, tempFile, value);
@@ -886,15 +936,11 @@ class Jimp extends Image {
             };
             const transformBuffer = (bmpFile?: Bufferable) => {
                 startMessage();
-                performCommand(host, this, localUri, command, bmpFile ? Image.MIME_BMP : outputType, outputAs, { buffer: bmpFile || file.buffer, mimeType, parent: file })
+                performCommand(host, this, localUri, outputData, bmpFile ? Image.MIME_BMP : outputType, outputAs, { buffer: bmpFile || file.buffer, mimeType, parent: file })
                     .then(img => {
                         if (typeof bmpFile === 'string') {
                             removeFile(bmpFile);
                         }
-                        const errorResponse = (err: unknown) => {
-                            this.writeFail([ERR_IMAGE.FINALIZE, STRINGS.MODULE_NAME], err, { type: LOG_TYPE.IMAGE, startTime });
-                            resolve();
-                        };
                         if (outputType === Image.MIME_GIF) {
                             try {
                                 const { GifUtil, GifFrame } = gifwrap;
@@ -904,10 +950,10 @@ class Jimp extends Image {
                                     .then(() => {
                                         finalize(output);
                                     })
-                                    .catch(errorResponse);
+                                    .catch(reject);
                             }
                             catch (err) {
-                                errorResponse(err);
+                                reject(err);
                             }
                         }
                         else {
@@ -916,26 +962,18 @@ class Jimp extends Image {
                                     finalize(result);
                                 }
                                 else {
-                                    errorResponse(err || new Error(ERR_MESSAGE.UNKNOWN));
+                                    reject(err || new Error(ERR_MESSAGE.UNKNOWN));
                                 }
                             });
                         }
                     })
-                    .catch((err: unknown) => {
-                        this.writeFail([ERR_MESSAGE.READ_BUFFER, path.basename(localUri)], err, { type: LOG_TYPE.IMAGE, startTime });
-                        resolve();
-                    });
-            };
-            const errorResponse = (err: unknown) => {
-                this.writeFail([ERR_MESSAGE.CONVERT_FILE, path.basename(localUri)], err, { type: LOG_TYPE.IMAGE, startTime });
-                resolve();
+                    .catch(reject);
             };
             const startMessage = () => {
                 host.formatMessage(LOG_TYPE.IMAGE, STRINGS.MODULE_NAME, [STRINGS.TRANSFORM, path.basename(localUri)], command);
             };
             if (mimeType === Image.MIME_GIF) {
-                if (outputType === Image.MIME_GIF || outputType === Image.MIME_WEBP) {
-                    const cmd = this.parseCommand(command);
+                if (isUnsupported(outputType)) {
                     const transformWebP = (target: string, modified: boolean) => {
                         if (outputAs === 'webp') {
                             if (!modified) {
@@ -944,7 +982,7 @@ class Jimp extends Image {
                             const { path: webp_path, gif2webp } = this.settings.webp ||= {};
                             const webp = util.renameExt(output, 'webp', replace);
                             const args: string[] = [util.normalizePath(target)];
-                            const quality = cmd.quality;
+                            const quality = outputData.quality;
                             if (quality) {
                                 const { value, method } = quality;
                                 if (!isNaN(value)) {
@@ -985,7 +1023,7 @@ class Jimp extends Image {
                                         finalize(webp);
                                     }
                                     else {
-                                        errorResponse(err);
+                                        reject(err);
                                     }
                                 });
                             }
@@ -994,7 +1032,7 @@ class Jimp extends Image {
                                     resolve();
                                 }
                                 else {
-                                    errorResponse(err);
+                                    reject(err);
                                 }
                             }
                         }
@@ -1005,18 +1043,18 @@ class Jimp extends Image {
                             resolve();
                         }
                     };
-                    if (hasTransform(cmd)) {
+                    if (hasTransform(outputData)) {
                         try {
                             startMessage();
                             const { GifUtil, BitmapImage } = gifwrap;
                             GifUtil.read(file.buffer || localUri)
                                 .then(src => {
-                                    rotateAnim(cmd);
+                                    rotateAnim(outputData);
                                     Promise.all(src.frames.map(async frame => {
                                         const bitmap = bmp.encode(frame.bitmap).data;
-                                        const instance = await jimp.Jimp.read(bitmap) as jimp.JimpInstance;
+                                        const instance = await jimp.Jimp.read(bitmap) as JimpInstance;
                                         const handler = new JimpHandler(instance, this);
-                                        return transformCommand(localUri, handler, cmd, Image.MIME_GIF);
+                                        return transformCommand(localUri, handler, outputData, Image.MIME_GIF);
                                     }))
                                     .then(items => {
                                         const quantize = this.settings.jimp?.gifwrap_quantize || '';
@@ -1042,14 +1080,14 @@ class Jimp extends Image {
                                             .then(() => {
                                                 transformWebP(output, true);
                                             })
-                                            .catch(errorResponse);
+                                            .catch(reject);
                                     })
-                                    .catch(errorResponse);
+                                    .catch(reject);
                                 })
-                                .catch(errorResponse);
+                                .catch(reject);
                         }
                         catch (err) {
-                            errorResponse(err);
+                            reject(err);
                         }
                     }
                     else {
@@ -1075,16 +1113,15 @@ class Jimp extends Image {
                             transformBuffer(bitmap);
                             return true;
                         }
-                        const cmd = this.parseCommand(command);
-                        if (hasTransform(cmd)) {
+                        if (hasTransform(outputData)) {
                             startMessage();
                             Promise.all(webp.frames.map(async (frame, index) => {
                                 const buffer = Image.toABGR(await webp.getFrameData(index));
                                 const bitmap = bmp.encode({ width: frame.width, height: frame.height, data: buffer }).data;
-                                const instance = await jimp.Jimp.read(bitmap) as jimp.JimpInstance;
+                                const instance = await jimp.Jimp.read(bitmap) as JimpInstance;
                                 const handler = new JimpHandler(instance, this);
                                 handler.background(webp.anim.bgColor);
-                                return transformCommand(localUri, handler, cmd, Image.MIME_BMP);
+                                return transformCommand(localUri, handler, outputData, Image.MIME_BMP);
                             }))
                             .then(items => {
                                 const length = items.length;
@@ -1115,17 +1152,17 @@ class Jimp extends Image {
                                             .then(() => {
                                                 finalize(output);
                                             })
-                                            .catch(errorResponse);
+                                            .catch(reject);
                                     }
                                     catch (err) {
-                                        errorResponse(err);
+                                        reject(err);
                                     }
                                 }
                                 else {
-                                    const { value: q = NaN, method: m = NaN, preset } = cmd.quality || {};
+                                    const { value: q = NaN, method: m = NaN, preset } = outputData.quality || {};
                                     const quality = !isNaN(q) ? q : undefined;
                                     const method = !isNaN(m) ? m : undefined;
-                                    rotateAnim(cmd);
+                                    rotateAnim(outputData);
                                     const frames: Promise<void>[] = new Array(length);
                                     let w = 0,
                                         h = 0;
@@ -1137,16 +1174,16 @@ class Jimp extends Image {
                                     }
                                     Promise.all(frames)
                                         .then(() => {
-                                            webp.save(output, { width: w, height: h, bgColor: cmd.rotate ? [0, 0, 0, 0] : undefined })
+                                            webp.save(output, { width: w, height: h, bgColor: outputData.rotate ? [0, 0, 0, 0] : undefined })
                                                 .then(() => {
                                                     finalize(output);
                                                 })
-                                                .catch(errorResponse);
+                                                .catch(reject);
                                         })
-                                        .catch(errorResponse);
+                                        .catch(reject);
                                 }
                             })
-                            .catch(errorResponse);
+                            .catch(reject);
                         }
                         else {
                             resolve();
@@ -1176,7 +1213,7 @@ class Jimp extends Image {
                             removeFile(bmpFile);
                             void tryWebpMux().then(valid => {
                                 if (!valid) {
-                                    errorResponse(err);
+                                    reject(err);
                                 }
                             });
                         }
@@ -1188,12 +1225,44 @@ class Jimp extends Image {
                             resolve();
                         }
                         else {
-                            errorResponse(err);
+                            reject(err);
                         }
                     }
                 }
             }
             else {
+                if (WorkerChannel.hasPermission(file) && this.parseWorker(outputData, outputType)) {
+                    try {
+                        let timer: NodeJS.Timeout | null = null;
+                        const failed = (message: string) => {
+                            reject(errorMessage(STRINGS.MODULE_NAME, message, localUri));
+                        };
+                        const outputOptions = getJPEGOptions(outputData.quality, output, outputType);
+                        const worker = WORKER.jimp.sendObject({ data: file.buffer || localUri, commandData: outputData, outputType, output, outputOptions: outputOptions && { [mimeType]: outputOptions } } as WorkerMessage, [], (value: string | null) => {
+                            if (timer) {
+                                clearTimeout(timer);
+                            }
+                            if (value) {
+                                finalize(value);
+                            }
+                            else {
+                                failed(ERR_MESSAGE.WORKER);
+                            }
+                        });
+                        if (worker) {
+                            if (typeof file.worker === 'number') {
+                                timer = setTimeout(() => {
+                                    void worker.terminate();
+                                    failed(ERR_MESSAGE.WORKER_TIMEOUT);
+                                }, file.worker);
+                            }
+                            return;
+                        }
+                    }
+                    catch (err) {
+                        this.addLog(this.statusType.WARN, err, { source: 'worker' });
+                    }
+                }
                 transformBuffer();
             }
         });

@@ -4,7 +4,7 @@
 * ES2022
 
 > [!CAUTION]
-> Unless otherwise noted these former `@pi-r` packages are unmaintained and untested. They are republished as is once per year with the **NodeJS LTS** turnover in April.
+> Unless otherwise noted these former `@pi-r` packages are unmaintained and untested. They are republished once per year with the **NodeJS LTS** turnover in April.
 
 ## General Usage
 

@@ -3,6 +3,10 @@
     "target": "es2022",
     "module": "preserve",
     "baseUrl": ".",
+    "paths": {
+      "@pi-r2/jimp": ["src/module/jimp"],
+      "@pi-r2/jimp/*": ["src/module/jimp/*"]
+    },
     "newLine": "lf",
     "libReplacement": false,
     "inlineSourceMap": false,

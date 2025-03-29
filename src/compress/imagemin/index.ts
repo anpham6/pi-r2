@@ -51,7 +51,7 @@ const PLUGIN_MAP: ObjectMap<FunctionType> = Object.freeze({
     'imagemin-svgo': svgo
 });
 
-export default function compress(this: ICompress<ImageminModule> | undefined, options: AnyObject & { __package__?: string } | undefined, metadata: CompressFormat["metadata"] & { package?: string } = {}) {
+export default function compress(this: ICompress<ImageminModule> | undefined, options: AnyObject | undefined, metadata: CompressFormat["metadata"] & { package?: string } = {}) {
     let { package: plugin, mimeType } = metadata,
         settings: ImageminModule["imagemin"] | undefined;
     if (isPlainObject<CompressModule>(this?.module) && (settings = this.module.imagemin) && !plugin) {

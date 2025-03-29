@@ -32,10 +32,26 @@ module.exports = [
         }
     },
     {
+        input: './publish/jimp/index.js',
+        treeshake: false,
+        output: {
+            file: './publish/jimp/index.js',
+            format: 'commonjs'
+        }
+    },
+    {
         input: './publish/jimp/util.js',
         treeshake: false,
         output: {
             file: './publish/jimp/util.js',
+            format: 'commonjs'
+        }
+    },
+    {
+        input: './publish/jimp/worker/jimp.js',
+        treeshake: false,
+        output: {
+            file: './publish/jimp/worker/jimp.js',
             format: 'commonjs'
         }
     }
