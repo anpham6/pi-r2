@@ -12,7 +12,7 @@ import Jimp = require('@pi-r2/jimp');
 
 const PORT: MessagePort = workerData[0];
 
-parentPort!.on('message', (value: WorkerMessage) => {
+parentPort!.on('message', (value: WorkerMessage<jimp.JPEGOptions>) => {
     const { data, commandData, outputType, output, outputOptions } = value;
     jimp.Jimp.read(data)
         .then(img => {

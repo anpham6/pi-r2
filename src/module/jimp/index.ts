@@ -972,130 +972,125 @@ class Jimp extends Image {
             const startMessage = () => {
                 host.formatMessage(LOG_TYPE.IMAGE, STRINGS.MODULE_NAME, [STRINGS.TRANSFORM, path.basename(localUri)], command);
             };
-            if (mimeType === Image.MIME_GIF) {
-                if (isUnsupported(outputType)) {
-                    const transformWebP = (target: string, modified: boolean) => {
-                        if (outputAs === 'webp') {
-                            if (!modified) {
-                                startMessage();
+            if (mimeType === Image.MIME_GIF && isUnsupported(outputType)) {
+                const transformWebP = (target: string, modified: boolean) => {
+                    if (outputAs === 'webp') {
+                        if (!modified) {
+                            startMessage();
+                        }
+                        const { path: webp_path, gif2webp } = this.settings.webp ||= {};
+                        const webp = util.renameExt(output, 'webp', replace);
+                        const args: string[] = [util.normalizePath(target)];
+                        const quality = outputData.quality;
+                        if (quality) {
+                            const { value, method } = quality;
+                            if (!isNaN(value)) {
+                                args.push('-q', value.toString());
                             }
-                            const { path: webp_path, gif2webp } = this.settings.webp ||= {};
-                            const webp = util.renameExt(output, 'webp', replace);
-                            const args: string[] = [util.normalizePath(target)];
-                            const quality = outputData.quality;
-                            if (quality) {
-                                const { value, method } = quality;
-                                if (!isNaN(value)) {
-                                    args.push('-q', value.toString());
-                                }
-                                if (!isNaN(method)) {
-                                    args.push('-m', method.toString());
-                                }
+                            if (!isNaN(method)) {
+                                args.push('-m', method.toString());
                             }
-                            if (Array.isArray(gif2webp)) {
-                                for (let i = 0, length = gif2webp.length; i < length; ++i) {
-                                    const arg = gif2webp[i];
-                                    switch (arg) {
-                                        case '-o':
+                        }
+                        if (Array.isArray(gif2webp)) {
+                            for (let i = 0, length = gif2webp.length; i < length; ++i) {
+                                const arg = gif2webp[i];
+                                switch (arg) {
+                                    case '-o':
+                                        ++i;
+                                    case '-h':
+                                    case '-version':
+                                        continue;
+                                    case '-q':
+                                    case '-m':
+                                        if (args.includes(arg)) {
                                             ++i;
-                                        case '-h':
-                                        case '-version':
                                             continue;
-                                        case '-q':
-                                        case '-m':
-                                            if (args.includes(arg)) {
-                                                ++i;
-                                                continue;
-                                            }
-                                            break;
-                                        case '--':
-                                            i = length;
-                                            continue;
-                                    }
-                                    args.push(arg);
+                                        }
+                                        break;
+                                    case '--':
+                                        i = length;
+                                        continue;
                                 }
+                                args.push(arg);
                             }
-                            args.push('-o', util.normalizePath(webp));
-                            try {
-                                child_process.execFile(util.getWebP_bin('gif2webp', webp_path), args, { shell: true, signal: this.signal, ...execOptions(this.settings) }, (err, stdout) => {
-                                    if (!err) {
-                                        this.addLog(this.statusType.INFO, stdout);
-                                        finalize(webp);
-                                    }
-                                    else {
-                                        reject(err);
-                                    }
-                                });
-                            }
-                            catch (err) {
-                                if (this.checkPackage(err, 'gif2webp-bin@3', LOG_TYPE.IMAGE)) {
-                                    resolve();
+                        }
+                        args.push('-o', util.normalizePath(webp));
+                        try {
+                            child_process.execFile(util.getWebP_bin('gif2webp', webp_path), args, { shell: true, signal: this.signal, ...execOptions(this.settings) }, (err, stdout) => {
+                                if (!err) {
+                                    this.addLog(this.statusType.INFO, stdout);
+                                    finalize(webp);
                                 }
                                 else {
                                     reject(err);
                                 }
-                            }
-                        }
-                        else if (modified) {
-                            finalize(output);
-                        }
-                        else {
-                            resolve();
-                        }
-                    };
-                    if (hasTransform(outputData)) {
-                        try {
-                            startMessage();
-                            const { GifUtil, BitmapImage } = gifwrap;
-                            GifUtil.read(file.buffer || localUri)
-                                .then(src => {
-                                    rotateAnim(outputData);
-                                    Promise.all(src.frames.map(async frame => {
-                                        const bitmap = bmp.encode(frame.bitmap).data;
-                                        const instance = await jimp.Jimp.read(bitmap) as JimpInstance;
-                                        const handler = new JimpHandler(instance, this);
-                                        return transformCommand(localUri, handler, outputData, Image.MIME_GIF);
-                                    }))
-                                    .then(items => {
-                                        const quantize = this.settings.jimp?.gifwrap_quantize || '';
-                                        const frames = src.frames;
-                                        for (let i = 0, length = items.length; i < length; ++i) {
-                                            const img = new BitmapImage(items[i].handler.bitmap);
-                                            switch (quantize) {
-                                                case 'none':
-                                                    break;
-                                                case 'dekker':
-                                                    GifUtil.quantizeDekker(img, 256);
-                                                    break;
-                                                case 'wu':
-                                                    GifUtil.quantizeWu(img, 256);
-                                                    break;
-                                                default:
-                                                    GifUtil.quantizeSorokin(img, 256);
-                                                    break;
-                                            }
-                                            frames[i].bitmap = img.bitmap;
-                                        }
-                                        GifUtil.write(output, frames, src)
-                                            .then(() => {
-                                                transformWebP(output, true);
-                                            })
-                                            .catch(reject);
-                                    })
-                                    .catch(reject);
-                                })
-                                .catch(reject);
+                            });
                         }
                         catch (err) {
-                            reject(err);
+                            if (this.checkPackage(err, 'gif2webp-bin@3', LOG_TYPE.IMAGE)) {
+                                resolve();
+                            }
+                            else {
+                                reject(err);
+                            }
                         }
                     }
+                    else if (modified) {
+                        finalize(output);
+                    }
                     else {
-                        transformWebP(localUri, false);
+                        resolve();
+                    }
+                };
+                if (hasTransform(outputData)) {
+                    try {
+                        startMessage();
+                        const { GifUtil, BitmapImage } = gifwrap;
+                        GifUtil.read(file.buffer || localUri)
+                            .then(src => {
+                                rotateAnim(outputData);
+                                Promise.all(src.frames.map(async frame => {
+                                    const bitmap = bmp.encode(frame.bitmap).data;
+                                    const instance = await jimp.Jimp.read(bitmap) as JimpInstance;
+                                    const handler = new JimpHandler(instance, this);
+                                    return transformCommand(localUri, handler, outputData, Image.MIME_GIF);
+                                }))
+                                .then(items => {
+                                    const quantize = this.settings.jimp?.gifwrap_quantize || '';
+                                    const frames = src.frames;
+                                    for (let i = 0, length = items.length; i < length; ++i) {
+                                        const img = new BitmapImage(items[i].handler.bitmap);
+                                        switch (quantize) {
+                                            case 'none':
+                                                break;
+                                            case 'dekker':
+                                                GifUtil.quantizeDekker(img, 256);
+                                                break;
+                                            case 'wu':
+                                                GifUtil.quantizeWu(img, 256);
+                                                break;
+                                            default:
+                                                GifUtil.quantizeSorokin(img, 256);
+                                                break;
+                                        }
+                                        frames[i].bitmap = img.bitmap;
+                                    }
+                                    GifUtil.write(output, frames, src)
+                                        .then(() => {
+                                            transformWebP(output, true);
+                                        })
+                                        .catch(reject);
+                                })
+                                .catch(reject);
+                            })
+                            .catch(reject);
+                    }
+                    catch (err) {
+                        reject(err);
                     }
                 }
                 else {
-                    transformBuffer();
+                    transformWebP(localUri, false);
                 }
             }
             else if (mimeType === Image.MIME_WEBP) {
