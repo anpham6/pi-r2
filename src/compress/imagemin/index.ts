@@ -1,5 +1,3 @@
-/* eslint import/no-unresolved: "off" */
-
 import type { CompressFormat } from '@e-mc/types/lib/squared';
 
 import type { ICompress } from '@e-mc/types/lib';
