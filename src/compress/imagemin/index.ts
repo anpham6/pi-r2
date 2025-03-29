@@ -1,5 +1,7 @@
 /* eslint import/no-unresolved: "off" */
 
+import type { CompressFormat } from '@e-mc/types/lib/squared';
+
 import type { ICompress } from '@e-mc/types/lib';
 import type { CompressModule } from '@e-mc/types/lib/settings';
 
@@ -49,16 +51,9 @@ const PLUGIN_MAP: ObjectMap<FunctionType> = Object.freeze({
     'imagemin-svgo': svgo
 });
 
-export default function compress(this: ICompress<ImageminModule> | undefined, options: AnyObject & { __package__?: string } | undefined, mimeType?: string) {
-    let plugin: string | undefined,
+export default function compress(this: ICompress<ImageminModule> | undefined, options: AnyObject & { __package__?: string } | undefined, metadata: CompressFormat["metadata"] & { package?: string } = {}) {
+    let { package: plugin, mimeType } = metadata,
         settings: ImageminModule["imagemin"] | undefined;
-    if (options && (plugin = options.__package__)) {
-        options = { ...options };
-        delete options.__package__;
-        if (Object.keys(options).length === 0) {
-            options = undefined;
-        }
-    }
     if (isPlainObject<CompressModule>(this?.module) && (settings = this.module.imagemin) && !plugin) {
         switch (mimeType) {
             case 'image/jpeg':
