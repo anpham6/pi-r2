@@ -11,6 +11,11 @@ import type { JimpInstance } from 'jimp';
 export interface JimpSettings extends ImageSettings {
     jimp?: {
         exec?: ExecAction;
+        worker?: {
+            min?: number | string;
+            max?: number | string;
+            expires?: number | string;
+        };
         cache_expires?: number | string;
         rotate_clockwise?: boolean;
         gifwrap_quantize?: "dekker" | "sorokin" | "wu" | "none";

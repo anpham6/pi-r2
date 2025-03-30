@@ -8,7 +8,6 @@ import type { MinIOPolicyType, MinIOStorageCredential } from '../types';
 import type { ObjectCannedACL } from '@pi-r/aws-lib/types';
 
 import type { Readable } from 'stream';
-
 import type { ItemBucketMetadata, LifecycleConfig, LockConfig } from 'minio';
 
 import { LOG_TYPE, TRANSFER_TYPE, VAL_CLOUD } from '@e-mc/types/constant';

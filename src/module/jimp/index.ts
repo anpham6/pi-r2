@@ -16,6 +16,8 @@ import type { DecodeJpegOptions } from "@jimp/js-jpeg";
 
 import type * as gw from 'gifwrap';
 
+import { ERR_IMAGE, ERR_MESSAGE, LOG_TYPE } from '@e-mc/types/constant';
+
 import path = require('node:path');
 import fs = require('node:fs');
 import crypto = require('node:crypto');
@@ -24,8 +26,6 @@ import jimp = require('jimp');
 import jimp_utils = require('@jimp/utils');
 import gifwrap = require('gifwrap');
 import bmp = require('bmp-js');
-
-import { ERR_IMAGE, ERR_MESSAGE, LOG_TYPE } from '@e-mc/types/constant';
 
 import { WorkerChannel } from '@e-mc/core';
 
@@ -248,6 +248,18 @@ function getCacheData(instance: Jimp) {
         TEMP_DIR = instance.getTempDir({ moduleDir: true, increment: 5 });
         const settings = instance.settings.jimp ||= {};
         const expires = parseExpires(settings.cache_expires || 0);
+        if (settings.worker) {
+            let { min = -1, max = -1, expires = 0 } = settings.worker;
+            if ((min = Math.trunc(+min)) >= 0) {
+                WORKER.jimp.min = min;
+            }
+            if ((max = Math.trunc(+max)) >= 0) {
+                WORKER.jimp.max = max;
+            }
+            if ((expires = parseExpires(expires)) > 0) {
+                WORKER.jimp.timeoutMs = expires;
+            }
+        }
         if (expires === 0) {
             settings.cache_expires = 0;
         }

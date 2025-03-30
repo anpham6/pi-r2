@@ -1,21 +1,20 @@
 import type { WorkerMessage } from '../types';
 
 import type { MessagePort } from 'node:worker_threads';
-
-import type { JimpInstance } from 'jimp';
+import type { JPEGOptions, JimpInstance } from 'jimp';
 
 import { parentPort, workerData } from 'node:worker_threads';
-
-import jimp = require('jimp');
+import { Jimp } from 'jimp';
 
 import Image = require('@e-mc/image');
-import Jimp = require('@pi-r2/jimp');
+
+import Jimp2 = require('@pi-r2/jimp');
 
 const PORT: MessagePort = workerData[0];
 
-parentPort!.on('message', (value: WorkerMessage<jimp.JPEGOptions>) => {
+parentPort!.on('message', (value: WorkerMessage<JPEGOptions>) => {
     const { data, commandData, outputType, output, outputOptions } = value;
-    jimp.Jimp.read(typeof data === 'string' ? data : Image.asBuffer(data))
+    Jimp.read(typeof data === 'string' ? data : Image.asBuffer(data))
         .then(img => {
             const { method, resize, crop, rotate, opacity = -1 } = commandData;
             if (method) {
@@ -24,13 +23,13 @@ parentPort!.on('message', (value: WorkerMessage<jimp.JPEGOptions>) => {
                 }
             }
             if (resize) {
-                Jimp.applyResize(img as JimpInstance, resize);
+                Jimp2.applyResize(img as JimpInstance, resize);
             }
             if (crop) {
-                Jimp.applyCrop(img as JimpInstance, crop);
+                Jimp2.applyCrop(img as JimpInstance, crop);
             }
             if (rotate) {
-                Jimp.applyRotate(img as JimpInstance, rotate);
+                Jimp2.applyRotate(img as JimpInstance, rotate);
             }
             if (opacity >= 0) {
                 img.opacity(opacity);
