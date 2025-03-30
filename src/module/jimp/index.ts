@@ -799,7 +799,7 @@ class Jimp extends Image {
                 if (replace && file.localUri !== output && !host.assets.find(item => item.localUri === output && !item.invalid)) {
                     host.filesToRemove.add(output);
                 }
-                formatMessage(this, util.showOutputType(mimeType, outputType, outputAs) + filename, startTime, false, ctimeMs);
+                formatMessage(this, util.showInputType(mimeType, outputType, outputAs) + filename, startTime, false, ctimeMs);
                 resolve();
             };
             let tempKey: string | undefined,
