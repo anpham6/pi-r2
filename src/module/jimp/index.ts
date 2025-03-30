@@ -249,15 +249,15 @@ function getCacheData(instance: Jimp) {
         const settings = instance.settings.jimp ||= {};
         const expires = parseExpires(settings.cache_expires || 0);
         if (settings.worker) {
-            let { min = -1, max = -1, expires = 0 } = settings.worker;
+            let { min = -1, max = -1, expires: timeoutMs = 0 } = settings.worker;
             if ((min = Math.trunc(+min)) >= 0) {
                 WORKER.jimp.min = min;
             }
             if ((max = Math.trunc(+max)) >= 0) {
                 WORKER.jimp.max = max;
             }
-            if ((expires = parseExpires(expires)) > 0) {
-                WORKER.jimp.timeoutMs = expires;
+            if ((timeoutMs = parseExpires(timeoutMs)) > 0) {
+                WORKER.jimp.timeoutMs = timeoutMs;
             }
         }
         if (expires === 0) {
@@ -298,11 +298,14 @@ function getCacheData(instance: Jimp) {
     return CACHE_TRANSFORM;
 }
 
-function formatMessage(instance: Jimp, value: string, startTime: LogTime | undefined, failed: boolean, cTimeMs?: number) {
+function formatMessage(instance: Jimp, value: string, startTime: LogTime | undefined, failed: boolean, worker = false, cTimeMs?: number) {
     if (cTimeMs) {
         instance.formatMessage(LOG_TYPE.IMAGE, STRINGS.MODULE_NAME, [value, 'cache'], new Date(cTimeMs).toLocaleString(), { ...Image.LOG_STYLE_NOTICE, hintBold: true });
     }
     else if (startTime) {
+        if (worker) {
+            value += ' (worker)';
+        }
         instance.writeTimeProcess(STRINGS.MODULE_NAME, value, startTime, { type: LOG_TYPE.IMAGE, failed });
     }
 }
@@ -703,7 +706,7 @@ class Jimp extends Image {
         }
         const writeMessage = (failed: boolean, cTimeMs?: number) => {
             if (cTimeMs || options.startTime) {
-                formatMessage(instance, filename + util.showOutputType(options.mimeType, outputType, outputAs), options.startTime, failed, cTimeMs);
+                formatMessage(instance, filename + util.showOutputType(options.mimeType, outputType, outputAs), options.startTime, failed, false, cTimeMs);
             }
         };
         let tempKey: string | undefined,
@@ -895,7 +898,7 @@ class Jimp extends Image {
                 return;
             }
             const startTime = process.hrtime();
-            const success = (result: string, ctimeMs?: number) => {
+            const success = (result: string, worker?: boolean, ctimeMs?: number) => {
                 const filename = path.basename(result);
                 if (file.document) {
                     host.writeImage(file.document, data.getObject<OutputFinalize<ExternalAsset>>({ command, output: result }));
@@ -920,7 +923,7 @@ class Jimp extends Image {
                 if (replace && file.localUri !== output && !host.assets.find(item => item.localUri === output && !item.invalid)) {
                     host.filesToRemove.add(output);
                 }
-                formatMessage(this, util.showOutputType(mimeType, outputType, outputAs) + filename, startTime, false, ctimeMs);
+                formatMessage(this, util.showInputType(mimeType, outputType, outputAs) + filename, startTime, false, worker, ctimeMs);
                 resolve();
             };
             let tempKey: string | undefined,
@@ -932,19 +935,19 @@ class Jimp extends Image {
                 if (buffer) {
                     const result = outputAs === 'webp' ? util.renameExt(output, 'webp', replace) : output;
                     fs.writeFileSync(result, file.buffer = buffer);
-                    success(result, ctimeMs);
+                    success(result, false, ctimeMs);
                     return;
                 }
             }
             const outputData = this.parseCommand(command);
-            const finalize = (value: string) => {
+            const finalize = (value: string, worker?: boolean) => {
                 if (tempFile && tempKey) {
                     void setImageCache(this, tempKey, tempFile, value);
                 }
                 if (replace) {
                     delete file.buffer;
                 }
-                success(value);
+                success(value, worker);
             };
             const transformBuffer = (bmpFile?: Bufferable) => {
                 startMessage();
@@ -1250,7 +1253,7 @@ class Jimp extends Image {
                                 clearTimeout(timer);
                             }
                             if (value) {
-                                finalize(value);
+                                finalize(value, true);
                             }
                             else {
                                 failed(ERR_MESSAGE.WORKER);

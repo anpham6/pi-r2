@@ -26,8 +26,11 @@
 
 ## Image
 
-* [@pi-r2/jimp](https://github.com/jimp-dev/jimp) (experimental)
-* [@pi-r2/imagemin](https://github.com/imagemin/imagemin) (experimental)
+* [@pi-r2/jimp](https://github.com/jimp-dev/jimp) (worker)
+
+## Compress
+
+* [@pi-r2/imagemin](https://github.com/imagemin/imagemin) (worker)
 
 ## LICENSE
 
