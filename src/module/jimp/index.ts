@@ -357,39 +357,40 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
     }
 
     async rotate(localFile?: string, callback?: ResultCallback<string>) {
+        if (this.aborted) {
+            return;
+        }
         const data = this.instance.rotateData;
-        if (!data || this.aborted) {
-            return;
+        if (data) {
+            if (!localFile) {
+                Jimp.applyRotate(this.handler, data);
+                return;
+            }
+            Jimp.applyBackground(this.handler, data);
+            const leading = localFile.substring(0, localFile.lastIndexOf('.') + 1);
+            const ext = path.extname(localFile);
+            const tasks: Promise<void>[] = [];
+            for (const value of data.values) {
+                const img = this.handler.clone().rotate(value);
+                const output = leading + value + ext;
+                tasks.push(
+                    img.write(output as "jimp.png")
+                        .then(() => {
+                            this.finalize(output, callback);
+                        })
+                        .catch((err: unknown) => {
+                            this.instance.writeFail([ERR_IMAGE.ROTATE, STRINGS.MODULE_NAME], err, LOG_TYPE.IMAGE);
+                        })
+                );
+            }
+            await Promise.all(tasks);
         }
-        if (!localFile) {
-            Jimp.applyRotate(this.handler, data);
-            return;
-        }
-        Jimp.applyBackground(this.handler, data);
-        const leading = localFile.substring(0, localFile.lastIndexOf('.') + 1);
-        const ext = path.extname(localFile);
-        const tasks: Promise<void>[] = [];
-        for (const value of data.values) {
-            const img = this.handler.clone().rotate(value);
-            const output = leading + value + ext;
-            tasks.push(
-                img.write(output as "jimp.png")
-                    .then(() => {
-                        this.finalize(output, callback);
-                    })
-                    .catch((err: unknown) => {
-                        this.instance.writeFail([ERR_IMAGE.ROTATE, STRINGS.MODULE_NAME], err, LOG_TYPE.IMAGE);
-                    })
-            );
-        }
-        await Promise.all(tasks);
     }
     async method() {
-        const data = this.instance.methodData;
-        if (!data || this.aborted) {
+        if (this.aborted) {
             return;
         }
-        for (const [name, args = []] of data) {
+        for (const [name, args = []] of (this.instance.methodData || [])) {
             try {
                 const alias = getMethodName(name);
                 if (!alias) {
@@ -469,11 +470,13 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
         }
     }
     resize() {
-        const data = this.instance.resizeData;
-        if (!data || this.aborted) {
+        if (this.aborted) {
             return;
         }
-        Jimp.applyResize(this.handler, data);
+        const data = this.instance.resizeData;
+        if (data) {
+            Jimp.applyResize(this.handler, data);
+        }
     }
     background(value: number | [number, number, number, number]) {
         this.handler.background = Array.isArray(value) ? jimp_utils.rgbaToInt(...value) : value;
