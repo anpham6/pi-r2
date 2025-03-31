@@ -33,12 +33,12 @@ export function parseFormat(command: string, mimeType?: string): [string, string
                     saveAs = 'jpg';
                     break;
                 case 'webp':
-                    if (saveAs = getExtension(mimeType)) {
+                    if (mimeType !== Image.MIME_BMP && (saveAs = getExtension(mimeType))) {
                         mime = mimeType!;
                     }
                     else {
-                        mime = Image.MIME_BMP;
-                        saveAs = 'bmp';
+                        mime = Image.MIME_JPEG;
+                        saveAs = 'jpg';
                     }
                     outputAs = 'webp';
                     break;
