@@ -1,5 +1,6 @@
 import type { IFileManager, IHost, IImage, ImageConstructor } from '@e-mc/types/lib';
 import type { ExternalAsset } from '@e-mc/types/lib/asset';
+import type { WorkerMessage } from '@e-mc/types/lib/core';
 import type { CommandData, CropData, ResizeData, RotateData, TransformOptions } from '@e-mc/types/lib/image';
 import type { ImageModule, ImageSettings } from '@e-mc/types/lib/settings';
 import type { ExecAction } from '@e-mc/types/lib/module';
@@ -19,16 +20,17 @@ export interface JimpSettings extends ImageSettings {
         cache_expires?: number | string;
         rotate_clockwise?: boolean;
         gifwrap_quantize?: "dekker" | "sorokin" | "wu" | "none";
-        read_options?: ObjectMap<AnyObject>;
+        options?: {
+            decode?: Record<string, AnyObject>;
+            encode?: Record<string, AnyObject>;
+        };
     };
 }
 
-export interface WorkerMessage<T = PlainObject> {
-    data: Buffer | string;
+export interface JimpMessage<T = PlainObject> extends WorkerMessage<T, Buffer | string> {
     commandData: CommandData;
     outputType: string;
     output?: string;
-    outputOptions?: T;
 }
 
 export type ResultCallback<T = unknown, U = void, V = unknown> = (err: V, result: T) => U;

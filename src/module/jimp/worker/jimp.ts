@@ -1,4 +1,4 @@
-import type { WorkerMessage } from '../types';
+import type { JimpMessage } from '../types';
 
 import type { MessagePort } from 'node:worker_threads';
 import type { JPEGOptions, JimpInstance } from 'jimp';
@@ -12,8 +12,8 @@ import Jimp2 = require('@pi-r2/jimp');
 
 const PORT: MessagePort = workerData[0];
 
-parentPort!.on('message', (value: WorkerMessage<JPEGOptions>) => {
-    const { data, commandData, outputType, output, outputOptions } = value;
+parentPort!.on('message', (value: JimpMessage<JPEGOptions>) => {
+    const { data, commandData, output, options } = value;
     Jimp.read(typeof data === 'string' ? data : Image.asBuffer(data))
         .then(img => {
             const { method, resize, crop, rotate, opacity = -1 } = commandData;
@@ -35,7 +35,7 @@ parentPort!.on('message', (value: WorkerMessage<JPEGOptions>) => {
                 img.opacity(opacity);
             }
             if (output) {
-                img.write(output as "jimp.jpg", outputOptions)
+                img.write(output as "jimp.jpg", options)
                     .then(() => {
                         PORT.postMessage(output);
                     })
@@ -45,7 +45,7 @@ parentPort!.on('message', (value: WorkerMessage<JPEGOptions>) => {
                     });
             }
             else {
-                void img.getBuffer(outputType as "image/jpeg", outputOptions)
+                void img.getBuffer(value.outputType as "image/jpeg", options)
                     .then(result => {
                         PORT.postMessage(result, [result.buffer]);
                     });

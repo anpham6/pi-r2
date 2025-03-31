@@ -9,7 +9,7 @@ import type { ImageModule } from '@e-mc/types/lib/settings';
 
 import type { WebpMux } from '@e-mc/image/types';
 
-import type { IJimpHandler, JimpImageConstructor, JimpSettings, ResultCallback, WorkerMessage } from './types';
+import type { IJimpHandler, JimpImageConstructor, JimpMessage, JimpSettings, ResultCallback } from './types';
 
 import type { JPEGOptions, JimpInstance, ResizeOptions, ResizeStrategy } from 'jimp';
 import type { DecodeJpegOptions } from "@jimp/js-jpeg";
@@ -133,8 +133,8 @@ function getMethodName(value: string) {
 }
 
 async function performCommand(host: IHost | null, instance: Jimp, localUri: string, command: string | CommandData, outputType: string, outputAs: string, { buffer, mimeType, parent }: { buffer?: string | Buffer | null; mimeType?: string; parent?: ExternalAsset } = {}) {
-    const options = mimeType ? instance.settings.jimp?.read_options?.[mimeType] : undefined;
-    return jimp.Jimp.read(buffer || localUri, isPlainObject<DecodeJpegOptions>(options) ? { [mimeType as "image/jpeg"]: options } : undefined).then(async img => {
+    const decodeMap = instance.settings.jimp?.options?.decode as Record<string, DecodeJpegOptions> | undefined;
+    return jimp.Jimp.read(buffer || localUri, decodeMap).then(async img => {
         return transformCommand(
             localUri,
             new JimpHandler(img as JimpInstance, instance, host),
@@ -326,21 +326,22 @@ function removeFile(pathname: string) {
     fs.unlink(pathname, () => {});
 }
 
-function getJPEGOptions(data: Optional<QualityData>, output: string, outputType: string) {
-    if (data) {
-        switch (path.extname(output).toLowerCase()) {
-            case '.jpeg':
-            case '.jpg':
-            case '.jpe':
-                break;
-            default:
-                if (outputType === Image.MIME_JPEG) {
-                    break;
-                }
-                return;
-        }
-        return { quality: data.value } as JPEGOptions;
+function getEncodeOptions(instance: Jimp, output: string): Record<string, JPEGOptions> | undefined {
+    let mimeType: string;
+    switch (path.extname(output).toLowerCase()) {
+        case '.jpeg':
+        case '.jpg':
+        case '.jpe':
+            mimeType = Image.MIME_JPEG;
+            break;
+        default:
+            mimeType = instance.outputType;
+            break;
     }
+    if (mimeType === Image.MIME_JPEG && instance.qualityData) {
+        return { [mimeType]: { quality: instance.qualityData.value } };
+    }
+    return instance.settings.jimp?.options?.encode;
 }
 
 const hasTransform = (cmd: CommandData) => !!(cmd.rotate || cmd.resize || cmd.crop || cmd.method || typeof cmd.opacity === 'number' && cmd.opacity >= 0 && cmd.opacity < 1);
@@ -390,7 +391,7 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
         if (this.aborted) {
             return;
         }
-        for (const [name, args = []] of (this.instance.methodData || [])) {
+        for (const [name, args = []] of this.instance.methodData || []) {
             try {
                 const alias = getMethodName(name);
                 if (!alias) {
@@ -573,7 +574,7 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
             return emptyData();
         }
         return new Promise<Bufferable | null>(resolve => {
-            this.handler.write(output as "jimp.jpg", getJPEGOptions(this.instance.qualityData, output, this.instance.outputType))
+            this.handler.write(output as "jimp.jpg", getEncodeOptions(this.instance, output))
                 .then(() => {
                     this.finalize(output, (error, result) => {
                         if (error) {
@@ -631,7 +632,7 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
             this.outFile = output;
             output = this.writeAs(output);
         }
-        return this.handler.write(output as "jimp.jpg", getJPEGOptions(this.instance.qualityData, output, this.instance.outputType))
+        return this.handler.write(output as "jimp.jpg", getEncodeOptions(this.instance, output))
             .then(() => {
                 this.finalize(output, callback);
             })
@@ -654,6 +655,8 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
                 return renameExt(value, 'gif');
             case Image.MIME_BMP:
                 return renameExt(value, 'bmp');
+            case Image.MIME_TIFF:
+                return renameExt(value, 'tiff');
             default:
                 return value;
         }
@@ -802,6 +805,7 @@ class Jimp extends Image {
                         mode = jimp.ResizeStrategy.BEZIER;
                         break;
                     case 'nearest':
+                    case 'nearest_neighbor':
                         mode = jimp.ResizeStrategy.NEAREST_NEIGHBOR;
                         break;
                 }
@@ -1250,8 +1254,7 @@ class Jimp extends Image {
                         const failed = (message: string) => {
                             reject(errorMessage(STRINGS.MODULE_NAME, message, localUri));
                         };
-                        const outputOptions = getJPEGOptions(outputData.quality, output, outputType);
-                        const worker = WORKER.jimp.sendObject({ data: file.buffer || localUri, commandData: outputData, outputType, output, outputOptions: outputOptions && { [mimeType]: outputOptions } } as WorkerMessage, [], (value: string | null) => {
+                        const worker = WORKER.jimp.sendObject({ data: file.buffer || localUri, commandData: outputData, outputType, output, options: getEncodeOptions(this, output) } as JimpMessage, [], (value: string | null) => {
                             if (timer) {
                                 clearTimeout(timer);
                             }
