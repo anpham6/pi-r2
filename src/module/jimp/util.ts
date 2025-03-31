@@ -52,7 +52,7 @@ export function parseFormat(command: string, mimeType?: string): [string, string
                         saveAs = 'tiff';
                     }
                     else {
-                        mime = jimp.JimpMime.bmp;
+                        mime = jimp.JimpMime.jpeg;
                         saveAs = 'jpg';
                     }
                     outputAs = 'webp';

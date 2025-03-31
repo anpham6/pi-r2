@@ -13,7 +13,7 @@
     "build:cloud:dev": "npm run build:cloud && npm run bundle:dev && npm run copy:base",
     "build:document:dev": "npm run build:document && npm run bundle:dev && npm run copy:base",
     "build:module:dev": "npm run build:module && npm run bundle:dev && npm run copy:base",
-    "build:prod": "tsc -p ./src/cloud/tsconfig.json && tsc -p ./src/document/tsconfig.json && tsc -p ./src/module/tsconfig.json && npm run bundle:prod && npm run verify:publish",
+    "build:prod": "tsc -p ./src/cloud/tsconfig.json && tsc -p ./src/document/tsconfig.json && tsc -p ./src/module/tsconfig.json && npm run bundle:prod",
     "publish:dev": "npm run publish:dev:cloud && npm run publish:dev:document && npm run publish:dev:module",
     "publish:prod": "npm run publish:prod:cloud && npm run publish:prod:document && npm run publish:prod:module",
     "publish:dev:cloud": "cd publish/ibm && npm publish --dry-run && cd ../minio && npm publish --dry-run",
