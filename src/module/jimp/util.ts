@@ -27,40 +27,36 @@ export const MIME_OUTPUT = new Set([
     STRINGS.MIME_WEBP as string
 ]);
 
-export function parseFormat(command: string, mimeType?: string, gif?: boolean): [string, string, string] {
+export function parseFormat(command: string, mimeType?: string): [string, string, string] {
     command = command.toLowerCase();
     for (let mime of MIME_OUTPUT) {
         let saveAs = mime.split('/')[1];
         if (command.startsWith(saveAs)) {
             let outputAs = '';
-            if (saveAs !== 'gif') {
-                switch (saveAs) {
-                    case 'jpeg':
+            switch (saveAs) {
+                case 'jpeg':
+                    saveAs = 'jpg';
+                    break;
+                case 'webp':
+                    mime = mimeType!;
+                    if (mimeType === jimp.JimpMime.jpeg) {
                         saveAs = 'jpg';
-                        break;
-                    case 'webp':
-                        if (mimeType === jimp.JimpMime.jpeg) {
-                            mime = jimp.JimpMime.jpeg;
-                            saveAs = 'jpg';
-                        }
-                        else if (gif && mimeType === jimp.JimpMime.gif) {
-                            mime = jimp.JimpMime.gif;
-                            saveAs = 'gif';
-                        }
-                        else if (mimeType === jimp.JimpMime.png) {
-                            mime = jimp.JimpMime.png;
-                            saveAs = 'png';
-                        }
-                        else {
-                            mime = jimp.JimpMime.bmp;
-                            saveAs = 'bmp';
-                        }
-                        outputAs = 'webp';
-                        break;
-                }
-            }
-            else if (!gif) {
-                break;
+                    }
+                    else if (mimeType === jimp.JimpMime.png) {
+                        saveAs = 'png';
+                    }
+                    else if (mimeType === jimp.JimpMime.gif) {
+                        saveAs = 'gif';
+                    }
+                    else if (mimeType === jimp.JimpMime.tiff) {
+                        saveAs = 'tiff';
+                    }
+                    else {
+                        mime = jimp.JimpMime.bmp;
+                        saveAs = 'bmp';
+                    }
+                    outputAs = 'webp';
+                    break;
             }
             return [mime, saveAs, outputAs];
         }
