@@ -11,7 +11,7 @@ import type { WebpMux } from '@e-mc/image/types';
 
 import type { IJimpHandler, JimpImageConstructor, JimpSettings, ResultCallback, WorkerMessage } from './types';
 
-import type { JimpInstance } from 'jimp';
+import type { JPEGOptions, JimpInstance, ResizeOptions, ResizeStrategy } from 'jimp';
 import type { DecodeJpegOptions } from "@jimp/js-jpeg";
 
 import type * as gw from 'gifwrap';
@@ -339,7 +339,7 @@ function getJPEGOptions(data: Optional<QualityData>, output: string, outputType:
                 }
                 return;
         }
-        return { quality: data.value } as jimp.JPEGOptions;
+        return { quality: data.value } as JPEGOptions;
     }
 }
 
@@ -787,7 +787,7 @@ class Jimp extends Image {
                 instance.scaleToFit({ w, h });
                 break;
             default: {
-                let mode: jimp.ResizeStrategy;
+                let mode: ResizeStrategy | undefined;
                 switch (data.algorithm) {
                     case 'bilinear':
                         mode = jimp.ResizeStrategy.BILINEAR;
@@ -801,11 +801,11 @@ class Jimp extends Image {
                     case 'bezier':
                         mode = jimp.ResizeStrategy.BEZIER;
                         break;
-                    default:
+                    case 'nearest':
                         mode = jimp.ResizeStrategy.NEAREST_NEIGHBOR;
                         break;
                 }
-                const options = { mode } as jimp.ResizeOptions;
+                const options = { mode } as ResizeOptions;
                 if (w < Infinity) {
                     options.w = w;
                 }
