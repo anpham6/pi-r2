@@ -822,7 +822,7 @@ class Jimp extends Image {
             };
             const transformBuffer = (bmpFile?: Bufferable) => {
                 startMessage();
-                performCommand(host, this, bmpFile || file.buffer || localUri, command, bmpFile ? jimp.JimpMime.bmp : outputType, outputAs, output, file)
+                performCommand(host, this, bmpFile || file.buffer || localUri, command, outputType, outputAs, output, file)
                     .then((img: JimpHandler) => {
                         if (typeof bmpFile === 'string') {
                             removeFile(bmpFile);
