@@ -1,5 +1,6 @@
 declare namespace util {
-    function parseFormat(command: string, mimeType?: string, gif?: boolean): [string, string, string];
+    function parseFormat(command: string, mimeType?: string): [string, string, string];
+    function getExtension(mimeType: string | undefined): string | undefined;
     function renameExt(output: string, ext: string, replace?: boolean): string;
     function normalizePath(value: string): string;
     function getWebP_bin(name: string, pathname: string | undefined): string;

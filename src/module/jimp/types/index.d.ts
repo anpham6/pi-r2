@@ -36,9 +36,13 @@ export interface JimpMessage<T = PlainObject> extends WorkerMessage<T, Buffer | 
 export type ResultCallback<T = unknown, U = void, V = unknown> = (err: V, result: T) => U;
 
 export interface IJimpHandler<T extends IHost = IHost, U extends ImageModule = ImageModule<JimpSettings>, V = JimpInstance> extends ImageHandler<V, T, IImage<T, U>, Promise<void>, Promise<void>> {
-    outFile: string;
     rotate(localFile?: string, callback?: ResultCallback<string>): Promise<void>;
     background(value: number | [number, number, number, number]): void;
+    finalize(output: string, callback?: (err: unknown, result: string) => void, outFile?: string): void;
+}
+
+export interface IJimpImage<T extends IFileManager<U>, U extends ExternalAsset = ExternalAsset, V extends ImageModule = ImageModule<JimpSettings>> extends IImage<T, V> {
+    getEncodeOptions(): AnyObject | undefined;
 }
 
 export interface JimpImageConstructor<T extends IFileManager<U>, U extends ExternalAsset = ExternalAsset, V extends ImageModule = ImageModule<JimpSettings>> extends ConstructorDerived<ImageConstructor<T, V>> {
@@ -47,6 +51,6 @@ export interface JimpImageConstructor<T extends IFileManager<U>, U extends Exter
     applyResize(instance: JimpInstance, data: ResizeData): void;
     applyCrop(instance: JimpInstance, data: CropData): void;
     applyRotate(instance: JimpInstance, data: RotateData): void;
-    readonly prototype: IImage<T, V>;
-    new(module?: V, ...args: unknown[]): IImage<T, V>;
+    readonly prototype: IJimpImage<T, U, V>;
+    new(module?: V, ...args: unknown[]): IJimpImage<T, U, V>;
 }

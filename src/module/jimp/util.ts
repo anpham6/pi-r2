@@ -18,46 +18,50 @@ export const MIME_OUTPUT = new Set([
     Image.MIME_JPEG,
     Image.MIME_BMP,
     Image.MIME_GIF,
+    Image.MIME_TIFF,
     Image.MIME_WEBP
 ]);
 
-export function parseFormat(command: string, mimeType?: string, gif?: boolean): [string, string, string] {
+export function parseFormat(command: string, mimeType?: string): [string, string, string] {
     command = command.toLowerCase();
     for (let mime of MIME_OUTPUT) {
-        let saveAs = mime.split('/')[1];
+        let saveAs: string | undefined = mime.split('/')[1];
         if (command.startsWith(saveAs)) {
             let outputAs = '';
-            if (saveAs !== 'gif') {
-                switch (saveAs) {
-                    case 'jpeg':
-                        saveAs = 'jpg';
-                        break;
-                    case 'webp':
+            switch (saveAs) {
+                case 'jpeg':
+                    saveAs = 'jpg';
+                    break;
+                case 'webp':
+                    if (saveAs = getExtension(mimeType)) {
                         mime = mimeType!;
-                        if (mimeType === Image.MIME_JPEG) {
-                            saveAs = 'jpg';
-                        }
-                        else if (gif && mimeType === Image.MIME_GIF) {
-                            saveAs = 'gif';
-                        }
-                        else if (mimeType === Image.MIME_PNG) {
-                            saveAs = 'png';
-                        }
-                        else {
-                            mime = Image.MIME_BMP;
-                            saveAs = 'bmp';
-                        }
-                        outputAs = 'webp';
-                        break;
-                }
-            }
-            else if (!gif) {
-                break;
+                    }
+                    else {
+                        mime = Image.MIME_BMP;
+                        saveAs = 'bmp';
+                    }
+                    outputAs = 'webp';
+                    break;
             }
             return [mime, saveAs, outputAs];
         }
     }
     return ['', '', ''];
+}
+
+export function getExtension(mimeType: string | undefined) {
+    switch (mimeType) {
+        case Image.MIME_JPEG:
+            return 'jpg';
+        case Image.MIME_PNG:
+            return 'png';
+        case Image.MIME_GIF:
+            return 'gif';
+        case Image.MIME_BMP:
+            return 'bmp';
+        case Image.MIME_TIFF:
+            return 'tiff';
+    }
 }
 
 export function renameExt(output: string, ext: string, replace?: boolean) {

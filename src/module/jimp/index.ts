@@ -132,16 +132,16 @@ function getMethodName(value: string) {
     }
 }
 
-async function performCommand(host: IHost | null, instance: Jimp, localUri: string, command: string | CommandData, outputType: string, outputAs: string, { buffer, mimeType, parent }: { buffer?: string | Buffer | null; mimeType?: string; parent?: ExternalAsset } = {}) {
+async function performCommand(instance: Jimp, buffer: Bufferable, command: string | CommandData, outputType: string, outputAs: string, output: string, { host, file }: { host?: IHost; file?: ExternalAsset } = {}) {
     const decodeMap = instance.settings.jimp?.options?.decode as Record<string, DecodeJpegOptions> | undefined;
-    return jimp.Jimp.read(buffer || localUri, decodeMap).then(async img => {
+    return jimp.Jimp.read(buffer, decodeMap).then(async img => {
         return transformCommand(
-            localUri,
+            output,
             new JimpHandler(img as JimpInstance, instance, host),
             command,
             outputType,
             outputAs,
-            parent
+            file
         );
     });
 }
@@ -162,7 +162,7 @@ function execOptions(settings: JimpSettings) {
     return { uid, gid };
 }
 
-async function transformCommand(localFile: string, handler: JimpHandler, command: string | CommandData, outputType: string, outputAs?: string, parent?: ExternalAsset) {
+async function transformCommand(output: string, handler: JimpHandler, command: string | CommandData, outputType: string, outputAs?: string, file?: ExternalAsset) {
     if (command) {
         handler.instance.setCommand(command, outputAs);
     }
@@ -180,10 +180,10 @@ async function transformCommand(localFile: string, handler: JimpHandler, command
             await handler.rotate();
             break;
         default:
-            await handler.rotate(localFile, (err, result) => {
+            await handler.rotate(output, (err, result) => {
                 if (!err) {
                     try {
-                        handler.host?.add(result, parent);
+                        handler.host?.add(result, file);
                     }
                     catch {
                     }
@@ -326,58 +326,48 @@ function removeFile(pathname: string) {
     fs.unlink(pathname, () => {});
 }
 
-function getEncodeOptions(instance: Jimp, output: string): Record<string, JPEGOptions> | undefined {
-    let mimeType: string;
-    switch (path.extname(output).toLowerCase()) {
-        case '.jpeg':
-        case '.jpg':
-        case '.jpe':
-            mimeType = Image.MIME_JPEG;
-            break;
-        default:
-            mimeType = instance.outputType;
-            break;
-    }
-    if (mimeType === Image.MIME_JPEG && instance.qualityData) {
-        return { [mimeType]: { quality: instance.qualityData.value } };
-    }
-    return instance.settings.jimp?.options?.encode;
-}
-
 const hasTransform = (cmd: CommandData) => !!(cmd.rotate || cmd.resize || cmd.crop || cmd.method || typeof cmd.opacity === 'number' && cmd.opacity >= 0 && cmd.opacity < 1);
 const isUnsupported = (value: string) => value === Image.MIME_GIF || value === Image.MIME_WEBP;
 const emptyResult = <T>(options: TransformOptions) => (options.tempFile ? '' : null) as T;
 
 class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler<IFileManager, ImageModule<JimpSettings>, T> {
-    outFile = '';
-
     constructor(
         public handler: T,
         public instance: Jimp,
         private readonly _host: IHost | null = null) {
     }
 
-    async rotate(localFile?: string, callback?: ResultCallback<string>) {
+    async rotate(output?: string, callback?: ResultCallback<string>) {
         if (this.aborted) {
             return;
         }
         const data = this.instance.rotateData;
         if (data) {
-            if (!localFile) {
+            if (!output) {
                 Jimp.applyRotate(this.handler, data);
                 return;
             }
+            let outFile: string | undefined;
+            if (this.instance.outputAs === 'webp') {
+                outFile = output;
+                output = this.writeAs(output);
+            }
             Jimp.applyBackground(this.handler, data);
-            const leading = localFile.substring(0, localFile.lastIndexOf('.') + 1);
-            const ext = path.extname(localFile);
+            const leading = output.substring(0, output.lastIndexOf('.') + 1);
+            const ext = path.extname(output);
             const tasks: Promise<void>[] = [];
-            for (const value of data.values) {
+            for (let i = 0; i < data.values.length; i++) {
+                const value = data.values[i];
+                if (i === 0) {
+                    this.handler.rotate(value);
+                    continue;
+                }
                 const img = this.handler.clone().rotate(value);
-                const output = leading + value + ext;
+                const target = leading + value + ext;
                 tasks.push(
-                    img.write(output as "jimp.png")
+                    img.write(target as "jimp.jpg", this.instance.getEncodeOptions())
                         .then(() => {
-                            this.finalize(output, callback);
+                            this.finalize(target, callback, outFile);
                         })
                         .catch((err: unknown) => {
                             this.instance.writeFail([ERR_IMAGE.ROTATE, STRINGS.MODULE_NAME], err, LOG_TYPE.IMAGE);
@@ -482,17 +472,16 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
     background(value: number | [number, number, number, number]) {
         this.handler.background = Array.isArray(value) ? jimp_utils.rgbaToInt(...value) : value;
     }
-    finalize(output: string, callback?: ResultCallback<string>) {
+    finalize(output: string, callback?: ResultCallback<string>, outFile = '') {
         if (this.aborted) {
             return;
         }
-        const instance = this.instance;
-        if (instance.outputAs === 'webp' && path.extname(output).toLowerCase() !== '.webp') {
-            const settings = instance.settings;
+        if (this.instance.outputAs === 'webp' && path.extname(output).toLowerCase() !== '.webp') {
+            const settings = this.instance.settings;
             const webp = settings.webp ||= {};
-            const data = instance.qualityData;
-            const replace = instance.getCommand().includes('@');
-            const outFile = this.outFile || util.renameExt(output, 'webp', replace);
+            const data = this.instance.qualityData;
+            const replace = this.instance.getCommand().includes('@');
+            outFile ||= util.renameExt(output, 'webp', replace);
             const args = [util.normalizePath(output)];
             if (data) {
                 const { value, preset, nearLossless } = data;
@@ -574,7 +563,7 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
             return emptyData();
         }
         return new Promise<Bufferable | null>(resolve => {
-            this.handler.write(output as "jimp.jpg", getEncodeOptions(this.instance, output))
+            this.handler.write(output as "jimp.jpg", this.instance.getEncodeOptions())
                 .then(() => {
                     this.finalize(output, (error, result) => {
                         if (error) {
@@ -628,13 +617,14 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
             }
             return;
         }
+        let outFile: string | undefined;
         if (this.instance.outputAs === 'webp') {
-            this.outFile = output;
+            outFile = output;
             output = this.writeAs(output);
         }
-        return this.handler.write(output as "jimp.jpg", getEncodeOptions(this.instance, output))
+        return this.handler.write(output as "jimp.jpg", this.instance.getEncodeOptions())
             .then(() => {
-                this.finalize(output, callback);
+                this.finalize(output, callback, outFile);
             })
             .catch((err: unknown) => {
                 if (callback) {
@@ -646,20 +636,8 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
             });
     }
     writeAs(value: string) {
-        switch (this.instance.outputType) {
-            case Image.MIME_JPEG:
-                return renameExt(value, 'jpg');
-            case Image.MIME_PNG:
-                return renameExt(value, 'png');
-            case Image.MIME_GIF:
-                return renameExt(value, 'gif');
-            case Image.MIME_BMP:
-                return renameExt(value, 'bmp');
-            case Image.MIME_TIFF:
-                return renameExt(value, 'tiff');
-            default:
-                return value;
-        }
+        const ext = util.getExtension(this.instance.outputType);
+        return ext ? renameExt(value, ext) : value;
     }
     get host() {
         return this._host as IFileManager | null || this.instance.host;
@@ -727,9 +705,9 @@ class Jimp extends Image {
         }
         instance.formatMessage(Image.LOG_TYPE.IMAGE, STRINGS.MODULE_NAME, [STRINGS.TRANSFORM, filename], command);
         Image.initCpuUsage(instance);
-        return performCommand(null, instance, file, command, outputType, outputAs, { mimeType: options.mimeType })
-            .then(async handler => {
-                const result = await handler.getBuffer(options.tempFile, saveAs);
+        return performCommand(instance, file, command, outputType, outputAs, file)
+            .then(async img => {
+                const result = await img.getBuffer(options.tempFile, saveAs);
                 instance.flushLog();
                 writeMessage(!result || instance.errors.length > 0);
                 if (result && tempKey && tempFile) {
@@ -889,7 +867,7 @@ class Jimp extends Image {
                 reject(errorValue(ERR_MESSAGE.UNSUPPORTED_READ, localUri));
                 return;
             }
-            const [outputType, saveAs, outputAs] = util.parseFormat(command = command.trim(), mimeType, true);
+            const [outputType, saveAs, outputAs] = util.parseFormat(command = command.trim(), mimeType);
             if (!outputType) {
                 reject(errorValue(ERR_MESSAGE.FORMAT, /^\w+/.exec(command)?.[0] || ERR_MESSAGE.UNKNOWN));
                 return;
@@ -958,7 +936,7 @@ class Jimp extends Image {
             };
             const transformBuffer = (bmpFile?: Bufferable) => {
                 startMessage();
-                performCommand(host, this, localUri, outputData, bmpFile ? Image.MIME_BMP : outputType, outputAs, { buffer: bmpFile || file.buffer, mimeType, parent: file })
+                performCommand(this, bmpFile || file.buffer || localUri, outputData, bmpFile ? Image.MIME_BMP : outputType, outputAs, output, { host, file })
                     .then(img => {
                         if (typeof bmpFile === 'string') {
                             removeFile(bmpFile);
@@ -1075,7 +1053,7 @@ class Jimp extends Image {
                                     const bitmap = bmp.encode(frame.bitmap).data;
                                     const instance = await jimp.Jimp.read(bitmap) as JimpInstance;
                                     const handler = new JimpHandler(instance, this);
-                                    return transformCommand(localUri, handler, outputData, Image.MIME_GIF);
+                                    return transformCommand(output, handler, outputData, Image.MIME_GIF);
                                 }))
                                 .then(items => {
                                     const quantize = this.settings.jimp?.gifwrap_quantize || '';
@@ -1138,7 +1116,7 @@ class Jimp extends Image {
                                 const instance = await jimp.Jimp.read(bitmap) as JimpInstance;
                                 const handler = new JimpHandler(instance, this);
                                 handler.background(webp.anim.bgColor);
-                                return transformCommand(localUri, handler, outputData, Image.MIME_BMP);
+                                return transformCommand(output, handler, outputData, Image.MIME_BMP);
                             }))
                             .then(items => {
                                 const length = items.length;
@@ -1254,7 +1232,7 @@ class Jimp extends Image {
                         const failed = (message: string) => {
                             reject(errorMessage(STRINGS.MODULE_NAME, message, localUri));
                         };
-                        const worker = WORKER.jimp.sendObject({ data: file.buffer || localUri, commandData: outputData, outputType, output, options: getEncodeOptions(this, output) } as JimpMessage, [], (value: string | null) => {
+                        const worker = WORKER.jimp.sendObject({ data: file.buffer || localUri, commandData: outputData, outputType, output, options: this.getEncodeOptions() } as JimpMessage, [], (value: string | null) => {
                             if (timer) {
                                 clearTimeout(timer);
                             }
@@ -1282,6 +1260,12 @@ class Jimp extends Image {
                 transformBuffer();
             }
         });
+    }
+    getEncodeOptions(): Record<string, JPEGOptions> | undefined {
+        if (this.qualityData && this.outputType === Image.MIME_JPEG) {
+            return { [Image.MIME_JPEG]: { quality: this.qualityData.value } };
+        }
+        return this.settings.jimp?.options?.encode;
     }
 
     get settings(): JimpSettings {
