@@ -7,7 +7,7 @@ import type { ExecAction } from '@e-mc/types/lib/module';
 
 import type { ImageHandler } from '@e-mc/image/types';
 
-import type { JimpInstance } from 'jimp';
+import type { JPEGOptions, JimpInstance } from 'jimp';
 
 export interface JimpSettings extends ImageSettings {
     jimp?: {
@@ -42,7 +42,7 @@ export interface IJimpHandler<T extends IHost = IHost, U extends ImageModule = I
 }
 
 export interface IJimpImage<T extends IFileManager<U>, U extends ExternalAsset = ExternalAsset, V extends ImageModule = ImageModule<JimpSettings>> extends IImage<T, V> {
-    getEncodeOptions(): AnyObject | undefined;
+    getEncodeOptions(): JPEGOptions | undefined;
 }
 
 export interface JimpImageConstructor<T extends IFileManager<U>, U extends ExternalAsset = ExternalAsset, V extends ImageModule = ImageModule<JimpSettings>> extends ConstructorDerived<ImageConstructor<T, V>> {

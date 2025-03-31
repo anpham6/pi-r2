@@ -1261,11 +1261,11 @@ class Jimp extends Image {
             }
         });
     }
-    getEncodeOptions(): Record<string, JPEGOptions> | undefined {
+    getEncodeOptions(): JPEGOptions | undefined {
         if (this.qualityData && this.outputType === Image.MIME_JPEG) {
-            return { [Image.MIME_JPEG]: { quality: this.qualityData.value } };
+            return { quality: this.qualityData.value };
         }
-        return this.settings.jimp?.options?.encode;
+        return this.settings.jimp?.options?.encode?.[this.outputType];
     }
 
     get settings(): JimpSettings {
