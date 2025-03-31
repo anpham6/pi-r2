@@ -80,13 +80,13 @@ export function normalizePath(value: string) {
     return `"${value.replace(/"/g, '\\"')}"`;
 }
 
-export function getWebP_bin(name: string, pathname: string | undefined): string {
+export async function importBinary(name: string, pathname: string | undefined): Promise<string> {
     if (pathname && fs.existsSync(pathname)) {
         name += Image.PLATFORM_WIN32 ? '.exe' : '';
         const bin = path.join(pathname, name);
         return types.sanitizeCmd(fs.existsSync(bin) ? bin : path.join(pathname, 'bin', name));
     }
-    return require(name + '-bin');
+    return types.importESM(name + '-bin', true);
 }
 
 export function showInputType(value: string | undefined, outputType: string, finalAs: string) {

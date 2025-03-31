@@ -367,7 +367,7 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
                 tasks.push(
                     img.write(target as "jimp.jpg", this.instance.getEncodeOptions())
                         .then(() => {
-                            this.finalize(target, callback, outFile);
+                            void this.finalize(target, callback, outFile);
                         })
                         .catch((err: unknown) => {
                             this.instance.writeFail([ERR_IMAGE.ROTATE, STRINGS.MODULE_NAME], err, LOG_TYPE.IMAGE);
@@ -472,7 +472,7 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
     background(value: number | [number, number, number, number]) {
         this.handler.background = Array.isArray(value) ? jimp_utils.rgbaToInt(...value) : value;
     }
-    finalize(output: string, callback?: ResultCallback<string>, outFile = '') {
+    async finalize(output: string, callback?: ResultCallback<string>, outFile = '') {
         if (this.aborted) {
             return;
         }
@@ -525,18 +525,14 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
             }
             args.push('-o', util.normalizePath(outFile));
             try {
-                child_process.execFile(util.getWebP_bin('cwebp', webp.path), args, { shell: true, signal: this.instance.signal, ...execOptions(settings) }, err => {
+                child_process.execFile(await util.importBinary('cwebp', webp.path), args, { shell: true, signal: this.instance.signal, ...execOptions(settings) }, err => {
                     if (err) {
                         this.instance.writeFail([ERR_MESSAGE.CONVERT_FILE, path.basename(outFile)], err, LOG_TYPE.IMAGE);
                     }
                     else if (output !== outFile) {
-                        const tempFile = output;
+                        const tempDir = output;
                         queueMicrotask(() => {
-                            fs.unlink(tempFile, error => {
-                                if (!error) {
-                                    fs.rmdir(path.dirname(tempFile), () => {});
-                                }
-                            });
+                            fs.rmdir(path.dirname(tempDir), { recursive: true }, () => {});
                         });
                         output = outFile;
                     }
@@ -546,7 +542,7 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
                 });
             }
             catch (err) {
-                this.instance.checkPackage(err, 'cwebp-bin@6.1.2', ERR_MESSAGE.UNKNOWN, { type: LOG_TYPE.IMAGE, passThrough: !!callback });
+                this.instance.checkPackage(err, 'cwebp-bin', ERR_MESSAGE.UNKNOWN, { type: LOG_TYPE.IMAGE, passThrough: !!callback });
                 if (callback) {
                     callback(err, '');
                 }
@@ -565,7 +561,7 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
         return new Promise<Bufferable | null>(resolve => {
             this.handler.write(output as "jimp.jpg", this.instance.getEncodeOptions())
                 .then(() => {
-                    this.finalize(output, (error, result) => {
+                    void this.finalize(output, (error, result) => {
                         if (error) {
                             resolve(emptyData());
                         }
@@ -624,7 +620,7 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
         }
         return this.handler.write(output as "jimp.jpg", this.instance.getEncodeOptions())
             .then(() => {
-                this.finalize(output, callback, outFile);
+                void this.finalize(output, callback, outFile);
             })
             .catch((err: unknown) => {
                 if (callback) {
@@ -973,7 +969,7 @@ class Jimp extends Image {
                 host.formatMessage(LOG_TYPE.IMAGE, STRINGS.MODULE_NAME, [STRINGS.TRANSFORM, path.basename(localUri)], command);
             };
             if (mimeType === Image.MIME_GIF && isUnsupported(outputType)) {
-                const transformWebP = (target: string, modified: boolean) => {
+                const transformWebP = async (target: string, modified: boolean) => {
                     if (outputAs === 'webp') {
                         if (!modified) {
                             startMessage();
@@ -1016,7 +1012,7 @@ class Jimp extends Image {
                         }
                         args.push('-o', util.normalizePath(webp));
                         try {
-                            child_process.execFile(util.getWebP_bin('gif2webp', webp_path), args, { shell: true, signal: this.signal, ...execOptions(this.settings) }, (err, stdout) => {
+                            child_process.execFile(await util.importBinary('gif2webp', webp_path), args, { shell: true, signal: this.signal, ...execOptions(this.settings) }, (err, stdout) => {
                                 if (!err) {
                                     this.addLog(this.statusType.INFO, stdout);
                                     finalize(webp);
@@ -1027,7 +1023,7 @@ class Jimp extends Image {
                             });
                         }
                         catch (err) {
-                            if (this.checkPackage(err, 'gif2webp-bin@3', LOG_TYPE.IMAGE)) {
+                            if (this.checkPackage(err, 'gif2webp-bin', LOG_TYPE.IMAGE)) {
                                 resolve();
                             }
                             else {
@@ -1077,7 +1073,7 @@ class Jimp extends Image {
                                     }
                                     GifUtil.write(output, frames, src)
                                         .then(() => {
-                                            transformWebP(output, true);
+                                            void transformWebP(output, true);
                                         })
                                         .catch(reject);
                                 })
@@ -1090,7 +1086,7 @@ class Jimp extends Image {
                     }
                 }
                 else {
-                    transformWebP(localUri, false);
+                    void transformWebP(localUri, false);
                 }
             }
             else if (mimeType === Image.MIME_WEBP) {
@@ -1189,18 +1185,16 @@ class Jimp extends Image {
                         if (WEBPMUX_INIT) {
                             this.writeFail([ERR_MESSAGE.UNKNOWN, 'node-webpmux'], err, { type: LOG_TYPE.IMAGE, startTime });
                         }
-                        else if (this.checkPackage(err, 'node-webpmux@3', LOG_TYPE.IMAGE)) {
+                        else if (this.checkPackage(err, 'node-webpmux', LOG_TYPE.IMAGE)) {
                             resolve();
                             return true;
                         }
                     }
                     return false;
                 };
-                const settings = this.settings;
-                const { path: webp_path } = settings.webp ||= {};
                 const bmpFile = getTempPath(this, 'bmp');
                 try {
-                    child_process.execFile(util.getWebP_bin('dwebp', webp_path), [util.normalizePath(localUri), '-bmp', '-o', util.normalizePath(bmpFile)], { shell: true, signal: this.signal, ...execOptions(settings) }, err => {
+                    child_process.execFile(await util.importBinary('dwebp', this.settings.webp?.path), [util.normalizePath(localUri), '-bmp', '-o', util.normalizePath(bmpFile)], { shell: true, signal: this.signal, ...execOptions(this.settings) }, err => {
                         if (!err) {
                             transformBuffer(bmpFile);
                         }
@@ -1216,7 +1210,7 @@ class Jimp extends Image {
                 }
                 catch (err) {
                     if (!await tryWebpMux()) {
-                        if (this.checkPackage(err, 'dwebp-bin@1', LOG_TYPE.IMAGE)) {
+                        if (this.checkPackage(err, 'dwebp-bin', LOG_TYPE.IMAGE)) {
                             resolve();
                         }
                         else {

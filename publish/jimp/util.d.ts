@@ -3,7 +3,7 @@ declare namespace util {
     function getExtension(mimeType: string | undefined): string | undefined;
     function renameExt(output: string, ext: string, replace?: boolean): string;
     function normalizePath(value: string): string;
-    function getWebP_bin(name: string, pathname: string | undefined): string;
+    function importBinary(name: string, pathname: string | undefined): Promise<string>;
     function showInputType(value: string | undefined, outputType: string, finalAs: string): string;
     function showOutputType(value: string | undefined, outputType: string, finalAs: string): string;
 }
