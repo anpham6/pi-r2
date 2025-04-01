@@ -42,9 +42,6 @@ export function parseFormat(command: string, mimeType?: string): [string, string
                     if (mimeType === jimp.JimpMime.jpeg) {
                         saveAs = 'jpg';
                     }
-                    else if (mimeType === jimp.JimpMime.png) {
-                        saveAs = 'png';
-                    }
                     else if (mimeType === jimp.JimpMime.gif) {
                         saveAs = 'gif';
                     }
@@ -52,8 +49,8 @@ export function parseFormat(command: string, mimeType?: string): [string, string
                         saveAs = 'tiff';
                     }
                     else {
-                        mime = jimp.JimpMime.jpeg;
-                        saveAs = 'jpg';
+                        mime = jimp.JimpMime.png;
+                        saveAs = 'png';
                     }
                     outputAs = 'webp';
                     break;

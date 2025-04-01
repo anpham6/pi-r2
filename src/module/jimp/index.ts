@@ -314,11 +314,6 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
         const length = values.length;
         const deg = values[0];
         if (length > 1 && output) {
-            let outFile: string | undefined;
-            if (this.instance.outputAs === 'webp') {
-                outFile = output;
-                output = this.writeAs(output);
-            }
             const leading = output.substring(0, output.lastIndexOf('.') + 1);
             const ext = path.extname(output);
             for (let i = 1; i < length; ++i) {
@@ -328,7 +323,7 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
                 tasks.push(
                     img.write(target as "jimp.jpg", getJPEGOptions(this.instance))
                         .then(() => {
-                            this.finalize(target, callback, outFile);
+                            this.finalize(target, callback, false);
                         })
                         .catch((err: unknown) => {
                             this.instance.writeFail([ERR_IMAGE.ROTATE, STRINGS.MODULE_NAME], err, LOG_TYPE.IMAGE);
@@ -455,7 +450,7 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
     background(value: number | [number, number, number, number]) {
         this.handler.background = Array.isArray(value) ? jimp_utils.rgbaToInt(...value) : value;
     }
-    finalize(output: string, callback?: ResultCallback<string>, outFile = '') {
+    finalize(output: string, callback?: ResultCallback<string>, main = true) {
         if (this.aborted) {
             return;
         }
@@ -464,8 +459,7 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
             const settings = instance.settings;
             const webp = settings.webp ||= {};
             const data = instance.qualityData;
-            const replace = instance.getCommand().includes('@');
-            outFile ||= util.renameExt(output, 'webp', replace);
+            const outFile = util.renameExt(output, 'webp', main);
             const args = [util.normalizePath(output)];
             if (data) {
                 const { value, preset, nearLossless } = data;
@@ -598,14 +592,9 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
             }
             return;
         }
-        let outFile: string | undefined;
-        if (this.instance.outputAs === 'webp') {
-            outFile = output;
-            output = this.writeAs(output);
-        }
         return this.handler.write(output as "jimp.jpg", getJPEGOptions(this.instance))
             .then(() => {
-                this.finalize(output, callback, outFile);
+                this.finalize(output, callback, true);
             })
             .catch((err: unknown) => {
                 if (callback) {
@@ -616,20 +605,20 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
                 }
             });
     }
-    writeAs(value: string) {
+    writeAs(value: string, webp?: boolean) {
         switch (this.instance.outputType) {
             case jimp.JimpMime.jpeg:
                 return types.renameExt(value, 'jpg');
-            case jimp.JimpMime.png:
-                return types.renameExt(value, 'png');
             case jimp.JimpMime.gif:
                 return types.renameExt(value, 'gif');
-            case jimp.JimpMime.bmp:
-                return types.renameExt(value, 'bmp');
             case jimp.JimpMime.tiff:
                 return types.renameExt(value, 'tiff');
+            case jimp.JimpMime.bmp:
+                if (!webp) {
+                    return types.renameExt(value, 'bmp');
+                }
             default:
-                return value;
+                return types.renameExt(value, 'png');
         }
     }
     get host() {
