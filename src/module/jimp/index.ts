@@ -5,7 +5,6 @@ import type { ExternalAsset, IFileThread, OutputFinalize } from '@e-mc/types/lib
 import type { CommandData, CropData, QualityData, ResizeData, RotateData, TransformOptions } from '@e-mc/types/lib/image';
 import type { LogTime } from '@e-mc/types/lib/logger';
 import type { ExecAction } from '@e-mc/types/lib/module';
-import type { ImageModule } from '@e-mc/types/lib/settings';
 
 import type { WebpMux } from '@e-mc/image/types';
 
@@ -31,7 +30,7 @@ import { WorkerChannel } from '@e-mc/core';
 
 const Image = require('@e-mc/image') as JimpImageConstructor<IFileManager>;
 
-import { createAbortError, errorMessage, errorValue, isPlainObject, isString, parseExpires, renameExt } from '@e-mc/types';
+import { createAbortError, errorMessage, errorValue, isPlainObject, isString, parseExpires } from '@e-mc/types';
 
 import util = require('./util');
 
@@ -63,7 +62,7 @@ const enum STRINGS {
 
 function createWorker(filename: string) {
     const { PIR2_JIMP_WORKER_MIN: min, PIR2_JIMP_WORKER_MAX: max, PIR2_JIMP_WORKER_TIMEOUT: timeout } = process.env;
-    const result = new WorkerChannel(path.join(__dirname, 'worker', filename), undefined, max ? parseInt(max) : undefined, timeout ? parseInt(timeout) * 1000 : undefined);
+    const result = new WorkerChannel(path.join(__dirname, 'worker', filename), undefined, { max: max ? parseInt(max) : undefined, idleTimeout: timeout ? parseInt(timeout) * 1000 : undefined });
     if (min) {
         result.min = parseInt(min);
     }
@@ -249,15 +248,15 @@ function getCacheData(instance: Jimp) {
         const settings = instance.settings.jimp ||= {};
         const expires = parseExpires(settings.cache_expires || 0);
         if (settings.worker) {
-            let { min = -1, max = -1, expires: timeoutMs = 0 } = settings.worker;
+            let { min = -1, max = -1, expires: idleTimeout = 0 } = settings.worker;
             if ((min = Math.trunc(+min)) >= 0) {
                 WORKER.jimp.min = min;
             }
             if ((max = Math.trunc(+max)) >= 0) {
                 WORKER.jimp.max = max;
             }
-            if ((timeoutMs = parseExpires(timeoutMs)) > 0) {
-                WORKER.jimp.timeoutMs = timeoutMs;
+            if ((idleTimeout = parseExpires(idleTimeout)) > 0) {
+                WORKER.jimp.idleTimeout = idleTimeout;
             }
         }
         if (expires === 0) {
@@ -330,9 +329,9 @@ const hasTransform = (cmd: CommandData) => !!(cmd.rotate || cmd.resize || cmd.cr
 const isUnsupported = (value: string) => value === Image.MIME_GIF || value === Image.MIME_WEBP;
 const emptyResult = <T>(options: TransformOptions) => (options.tempFile ? '' : null) as T;
 
-class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler<IFileManager, ImageModule<JimpSettings>, T> {
+class JimpHandler implements IJimpHandler<IFileManager> {
     constructor(
-        public handler: T,
+        public handler: JimpInstance,
         public instance: Jimp,
         private readonly _host: IHost | null = null) {
     }
@@ -346,11 +345,6 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
             if (!output) {
                 Jimp.applyRotate(this.handler, data);
                 return;
-            }
-            let outFile: string | undefined;
-            if (this.instance.outputAs === 'webp') {
-                outFile = output;
-                output = this.writeAs(output);
             }
             Jimp.applyBackground(this.handler, data);
             const leading = output.substring(0, output.lastIndexOf('.') + 1);
@@ -367,7 +361,7 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
                 tasks.push(
                     img.write(target as "jimp.jpg", this.instance.getEncodeOptions())
                         .then(() => {
-                            void this.finalize(target, callback, outFile);
+                            void this.finalize(target, callback, false);
                         })
                         .catch((err: unknown) => {
                             this.instance.writeFail([ERR_IMAGE.ROTATE, STRINGS.MODULE_NAME], err, LOG_TYPE.IMAGE);
@@ -472,7 +466,7 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
     background(value: number | [number, number, number, number]) {
         this.handler.background = Array.isArray(value) ? jimp_utils.rgbaToInt(...value) : value;
     }
-    async finalize(output: string, callback?: ResultCallback<string>, outFile = '') {
+    async finalize(output: string, callback?: ResultCallback<string>, overwrite = true) {
         if (this.aborted) {
             return;
         }
@@ -480,8 +474,7 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
             const settings = this.instance.settings;
             const webp = settings.webp ||= {};
             const data = this.instance.qualityData;
-            const replace = this.instance.getCommand().includes('@');
-            outFile ||= util.renameExt(output, 'webp', replace);
+            const outFile = util.renameExt(output, 'webp', overwrite);
             const args = [util.normalizePath(output)];
             if (data) {
                 const { value, preset, nearLossless } = data;
@@ -530,9 +523,13 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
                         this.instance.writeFail([ERR_MESSAGE.CONVERT_FILE, path.basename(outFile)], err, LOG_TYPE.IMAGE);
                     }
                     else if (output !== outFile) {
-                        const tempDir = output;
+                        const tempFile = output;
                         queueMicrotask(() => {
-                            fs.rmdir(path.dirname(tempDir), { recursive: true }, () => {});
+                            fs.unlink(tempFile, error => {
+                                if (!error) {
+                                    fs.rmdir(path.dirname(tempFile), () => {});
+                                }
+                            });
                         });
                         output = outFile;
                     }
@@ -613,14 +610,9 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
             }
             return;
         }
-        let outFile: string | undefined;
-        if (this.instance.outputAs === 'webp') {
-            outFile = output;
-            output = this.writeAs(output);
-        }
         return this.handler.write(output as "jimp.jpg", this.instance.getEncodeOptions())
             .then(() => {
-                void this.finalize(output, callback, outFile);
+                void this.finalize(output, callback, true);
             })
             .catch((err: unknown) => {
                 if (callback) {
@@ -630,10 +622,6 @@ class JimpHandler<T extends JimpInstance = JimpInstance> implements IJimpHandler
                     this.instance.writeFail([ERR_MESSAGE.WRITE_FILE, path.basename(output)], err, LOG_TYPE.IMAGE);
                 }
             });
-    }
-    writeAs(value: string) {
-        const ext = util.getExtension(this.instance.outputType);
-        return ext ? renameExt(value, ext) : value;
     }
     get host() {
         return this._host as IFileManager | null || this.instance.host;

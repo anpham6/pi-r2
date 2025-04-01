@@ -33,12 +33,12 @@ export function parseFormat(command: string, mimeType?: string): [string, string
                     saveAs = 'jpg';
                     break;
                 case 'webp':
-                    if (mimeType !== Image.MIME_BMP && (saveAs = getExtension(mimeType))) {
+                    if (saveAs = getExtension(mimeType)) {
                         mime = mimeType!;
                     }
                     else {
-                        mime = Image.MIME_JPEG;
-                        saveAs = 'jpg';
+                        mime = Image.MIME_PNG;
+                        saveAs = 'png';
                     }
                     outputAs = 'webp';
                     break;
@@ -49,18 +49,21 @@ export function parseFormat(command: string, mimeType?: string): [string, string
     return ['', '', ''];
 }
 
-export function getExtension(mimeType: string | undefined) {
+export function getExtension(mimeType: string | undefined, webp?: boolean) {
     switch (mimeType) {
         case Image.MIME_JPEG:
             return 'jpg';
-        case Image.MIME_PNG:
-            return 'png';
         case Image.MIME_GIF:
             return 'gif';
-        case Image.MIME_BMP:
-            return 'bmp';
         case Image.MIME_TIFF:
             return 'tiff';
+        case Image.MIME_BMP:
+            if (!webp) {
+                return 'bmp';
+            }
+            break;
+        case Image.MIME_PNG:
+            return 'png';
     }
 }
 

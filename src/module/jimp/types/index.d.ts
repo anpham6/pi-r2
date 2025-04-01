@@ -12,14 +12,14 @@ import type { JPEGOptions, JimpInstance } from 'jimp';
 export interface JimpSettings extends ImageSettings {
     jimp?: {
         exec?: ExecAction;
+        cache_expires?: number | string;
+        rotate_clockwise?: boolean;
+        gifwrap_quantize?: "dekker" | "sorokin" | "wu" | "none";
         worker?: {
             min?: number | string;
             max?: number | string;
             expires?: number | string;
         };
-        cache_expires?: number | string;
-        rotate_clockwise?: boolean;
-        gifwrap_quantize?: "dekker" | "sorokin" | "wu" | "none";
         options?: {
             decode?: Record<string, AnyObject>;
             encode?: Record<string, AnyObject>;
@@ -38,7 +38,7 @@ export type ResultCallback<T = unknown, U = void, V = unknown> = (err: V, result
 export interface IJimpHandler<T extends IHost = IHost, U extends ImageModule = ImageModule<JimpSettings>, V = JimpInstance> extends ImageHandler<V, T, IImage<T, U>, Promise<void>, Promise<void>> {
     rotate(localFile?: string, callback?: ResultCallback<string>): Promise<void>;
     background(value: number | [number, number, number, number]): void;
-    finalize(output: string, callback?: (err: unknown, result: string) => void, outFile?: string): Promise<void>;
+    finalize(output: string, callback?: (err: unknown, result: string) => void, overwrite?: boolean): Promise<void>;
 }
 
 export interface IJimpImage<T extends IFileManager<U>, U extends ExternalAsset = ExternalAsset, V extends ImageModule = ImageModule<JimpSettings>> extends IImage<T, V> {
