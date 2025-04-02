@@ -33,7 +33,7 @@ export function parseFormat(command: string, mimeType?: string): [string, string
                     saveAs = 'jpg';
                     break;
                 case 'webp':
-                    if (saveAs = getExtension(mimeType)) {
+                    if (saveAs = detectExt(mimeType)) {
                         mime = mimeType!;
                     }
                     else {
@@ -49,7 +49,7 @@ export function parseFormat(command: string, mimeType?: string): [string, string
     return ['', '', ''];
 }
 
-export function getExtension(mimeType: string | undefined, webp?: boolean) {
+export function detectExt(mimeType: string | undefined, webp?: boolean) {
     switch (mimeType) {
         case Image.MIME_JPEG:
             return 'jpg';

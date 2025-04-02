@@ -30,7 +30,7 @@ import { WorkerChannel } from '@e-mc/core';
 
 const Image = require('@e-mc/image') as JimpImageConstructor<IFileManager>;
 
-import { createAbortError, errorMessage, errorValue, isPlainObject, isString, parseExpires } from '@e-mc/types';
+import { ERR_CODE, createAbortError, errorMessage, errorValue, isPlainObject, isString, parseExpires } from '@e-mc/types';
 
 import util = require('./util');
 
@@ -528,7 +528,7 @@ class JimpHandler implements IJimpHandler<IFileManager> {
                 });
             }
             catch (err) {
-                this.instance.checkPackage(err, 'cwebp-bin', ERR_MESSAGE.UNKNOWN, { type: LOG_TYPE.IMAGE, passThrough: !!callback });
+                this.instance.checkPackage(err, 'cwebp-bin', LOG_TYPE.IMAGE);
                 if (callback) {
                     callback(err, '');
                 }
@@ -933,6 +933,9 @@ class Jimp extends Image {
                             void img.write(output, (err, result) => {
                                 if (!err && result) {
                                     finalize(result);
+                                }
+                                else if (Image.isErrorCode(err, ERR_CODE.MODULE_NOT_FOUND)) {
+                                    resolve();
                                 }
                                 else {
                                     reject(err || new Error(ERR_MESSAGE.UNKNOWN));

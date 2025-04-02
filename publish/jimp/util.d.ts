@@ -1,6 +1,6 @@
 declare namespace util {
     function parseFormat(command: string, mimeType?: string): [string, string, string];
-    function getExtension(mimeType: string | undefined, webp?: boolean): string | undefined;
+    function detectExt(mimeType: string | undefined, webp?: boolean): string | undefined;
     function renameExt(output: string, ext: string, replace?: boolean): string;
     function normalizePath(value: string): string;
     function importBinary(name: string, pathname: string | undefined): Promise<string>;
