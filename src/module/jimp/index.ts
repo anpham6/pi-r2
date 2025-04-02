@@ -60,23 +60,12 @@ const enum STRINGS {
     TRANSFORM = 'Transforming image...'
 }
 
-function createWorker(filename: string) {
-    const { PIR2_JIMP_WORKER_MIN: min, PIR2_JIMP_WORKER_MAX: max, PIR2_JIMP_WORKER_TIMEOUT: timeout } = process.env;
-    const result = new WorkerChannel(path.join(__dirname, 'worker', filename), undefined, { max: max ? parseInt(max) : undefined, idleTimeout: timeout ? parseInt(timeout) * 1000 : undefined });
-    if (min) {
-        result.min = parseInt(min);
-    }
-    return result;
-}
-
 const CACHE_TRANSFORM: ObjectMap<CacheData> = {};
-const WORKER = Object.freeze({
-    jimp: createWorker('jimp.js')
-});
+const WORKER_JIMP = WorkerChannel.create<string | null>(path.join(__dirname, 'worker', 'jimp.js'), 'PIR2_JIMP');
 let CACHE_INIT = false;
 let TEMP_DIR = '';
 
-const METHOD_ALIAS = Object.freeze({
+const METHOD_ALIAS = {
     contain: 'ct',
     cover: 'cv',
     resize: 're',
@@ -112,8 +101,8 @@ const METHOD_ALIAS = Object.freeze({
     fisheye: 'fe',
     threshold: 'th',
     quantize: 'qu'
-});
-const METHOD_NONE = Object.freeze(['sepia', 'normalize', 'invert', 'greyscale', 'dither']);
+};
+const METHOD_NONE = ['sepia', 'normalize', 'invert', 'greyscale', 'dither'];
 
 type MethodName = keyof typeof METHOD_ALIAS;
 
@@ -250,13 +239,13 @@ function getCacheData(instance: Jimp) {
         if (settings.worker) {
             let { min = -1, max = -1, expires: idleTimeout = 0 } = settings.worker;
             if ((min = Math.trunc(+min)) >= 0) {
-                WORKER.jimp.min = min;
+                WORKER_JIMP.min = min;
             }
             if ((max = Math.trunc(+max)) >= 0) {
-                WORKER.jimp.max = max;
+                WORKER_JIMP.max = max;
             }
             if ((idleTimeout = parseExpires(idleTimeout)) > 0) {
-                WORKER.jimp.idleTimeout = idleTimeout;
+                WORKER_JIMP.idleTimeout = idleTimeout;
             }
         }
         if (expires === 0) {
@@ -1214,7 +1203,7 @@ class Jimp extends Image {
                         const failed = (message: string) => {
                             reject(errorMessage(STRINGS.MODULE_NAME, message, localUri));
                         };
-                        const worker = WORKER.jimp.sendObject({ data: file.buffer || localUri, commandData: outputData, outputType, output, options: this.getEncodeOptions() } as JimpMessage, [], (value: string | null) => {
+                        const worker = WORKER_JIMP.sendObject({ data: file.buffer || localUri, commandData: outputData, outputType, output, options: this.getEncodeOptions() } as JimpMessage, [], (value: string | null) => {
                             if (timer) {
                                 clearTimeout(timer);
                             }
