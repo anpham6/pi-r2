@@ -450,7 +450,7 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
     background(value: number | [number, number, number, number]) {
         this.handler.background = Array.isArray(value) ? jimp_utils.rgbaToInt(...value) : value;
     }
-    finalize(output: string, callback?: ResultCallback<string>, main = true) {
+    finalize(output: string, callback?: ResultCallback<string>, replace?: boolean) {
         if (this.aborted) {
             return;
         }
@@ -459,7 +459,8 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
             const settings = instance.settings;
             const webp = settings.webp ||= {};
             const data = instance.qualityData;
-            const outFile = util.renameExt(output, 'webp', main);
+            replace ??= instance.getCommand().includes('@');
+            const outFile = util.renameExt(output, 'webp', replace);
             const args = [util.normalizePath(output)];
             if (data) {
                 const { value, preset, nearLossless } = data;
@@ -594,7 +595,7 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
         }
         return this.handler.write(output as "jimp.jpg", getJPEGOptions(this.instance))
             .then(() => {
-                this.finalize(output, callback, true);
+                this.finalize(output, callback);
             })
             .catch((err: unknown) => {
                 if (callback) {
@@ -604,22 +605,6 @@ class JimpHandler implements IJimpHandler<IFileManager, ImageModule<JimpSettings
                     this.instance.writeFail([ERR_MESSAGE.WRITE_FILE, path.basename(output)], err, LOG_TYPE.IMAGE);
                 }
             });
-    }
-    writeAs(value: string, webp?: boolean) {
-        switch (this.instance.outputType) {
-            case jimp.JimpMime.jpeg:
-                return types.renameExt(value, 'jpg');
-            case jimp.JimpMime.gif:
-                return types.renameExt(value, 'gif');
-            case jimp.JimpMime.tiff:
-                return types.renameExt(value, 'tiff');
-            case jimp.JimpMime.bmp:
-                if (!webp) {
-                    return types.renameExt(value, 'bmp');
-                }
-            default:
-                return types.renameExt(value, 'png');
-        }
     }
     get host() {
         return this._host as IFileManager | null || this.instance.host;
