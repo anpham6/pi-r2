@@ -23,7 +23,7 @@ export interface IJimpHandler<T extends IHost = IHost, U extends ImageModule = I
     method(): Promise<void>;
     rotate(output?: string, callback?: ResultCallback<string>): Promise<this>;
     background(value: number | [number, number, number, number]): void;
-    finalize(output: string, callback?: ResultCallback<string>, overwrite?: boolean): void;
+    finalize(output: string, callback?: ResultCallback<string>, replace?: boolean): void;
 }
 
 export interface JimpImageConstructor<T extends IFileManager<U>, U extends ExternalAsset = ExternalAsset, V extends ImageModule = ImageModule<JimpSettings>> extends ConstructorDerived<ImageConstructor<T, V>> {
