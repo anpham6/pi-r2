@@ -455,7 +455,7 @@ class JimpHandler implements IJimpHandler<IFileManager> {
     background(value: number | [number, number, number, number]) {
         this.handler.background = Array.isArray(value) ? jimp_utils.rgbaToInt(...value) : value;
     }
-    async finalize(output: string, callback?: ResultCallback<string>, overwrite = true) {
+    async finalize(output: string, callback?: ResultCallback<string>, replace?: boolean) {
         if (this.aborted) {
             return;
         }
@@ -463,7 +463,8 @@ class JimpHandler implements IJimpHandler<IFileManager> {
             const settings = this.instance.settings;
             const webp = settings.webp ||= {};
             const data = this.instance.qualityData;
-            const outFile = util.renameExt(output, 'webp', overwrite);
+            replace ??= this.instance.getCommand().includes('@');
+            const outFile = util.renameExt(output, 'webp', replace);
             const args = [util.normalizePath(output)];
             if (data) {
                 const { value, preset, nearLossless } = data;
@@ -601,7 +602,7 @@ class JimpHandler implements IJimpHandler<IFileManager> {
         }
         return this.handler.write(output as "jimp.jpg", this.instance.getEncodeOptions())
             .then(() => {
-                void this.finalize(output, callback, true);
+                void this.finalize(output, callback);
             })
             .catch((err: unknown) => {
                 if (callback) {

@@ -38,7 +38,7 @@ export type ResultCallback<T = unknown, U = void, V = unknown> = (err: V, result
 export interface IJimpHandler<T extends IHost = IHost, U extends ImageModule = ImageModule<JimpSettings>, V = JimpInstance> extends ImageHandler<V, T, IImage<T, U>, Promise<void>, Promise<void>> {
     rotate(localFile?: string, callback?: ResultCallback<string>): Promise<void>;
     background(value: number | [number, number, number, number]): void;
-    finalize(output: string, callback?: (err: unknown, result: string) => void, overwrite?: boolean): Promise<void>;
+    finalize(output: string, callback?: (err: unknown, result: string) => void, replace?: boolean): Promise<void>;
 }
 
 export interface IJimpImage<T extends IFileManager<U>, U extends ExternalAsset = ExternalAsset, V extends ImageModule = ImageModule<JimpSettings>> extends IImage<T, V> {
