@@ -20,7 +20,7 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/types": "^0.11.4",
+    "@e-mc/types": "^0.11.7",
     "file-type": "^19.6.0",
     "imagemin-gifsicle": "^7.0.0",
     "imagemin-jpegtran": "^8.0.0",
