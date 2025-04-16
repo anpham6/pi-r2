@@ -19,6 +19,12 @@ module.exports = tseslint.config(
         }
     },
     {
+        files: ['src/compress/imagemin/*.ts'],
+        rules: {
+            'import/no-unresolved': 'off',
+        }
+    },
+    {
         files: ['src/cloud/minio/**/*.ts'],
         rules: {
             '@typescript-eslint/no-confusing-void-expression': 'off'

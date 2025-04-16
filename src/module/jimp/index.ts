@@ -102,21 +102,22 @@ const METHOD_ALIAS = {
     threshold: 'th',
     quantize: 'qu'
 };
-const METHOD_NONE = ['sepia', 'normalize', 'invert', 'greyscale', 'dither'];
 
 type MethodName = keyof typeof METHOD_ALIAS;
 
-function getMethodName(value: string) {
-    if (value.length === 2) {
-        value = value.toLowerCase();
-        for (const alias in METHOD_ALIAS) {
-            if (METHOD_ALIAS[alias as MethodName] === value) {
-                return alias as MethodName;
+function getMethodName(value: unknown) {
+    if (isString(value)) {
+        if (value.length === 2) {
+            value = value.toLowerCase();
+            for (const alias in METHOD_ALIAS) {
+                if (METHOD_ALIAS[alias as MethodName] === value) {
+                    return alias as MethodName;
+                }
             }
         }
-    }
-    else if (METHOD_ALIAS[value as MethodName] || METHOD_ALIAS[value = value.toLowerCase() as MethodName]) {
-        return value as MethodName;
+        else if (METHOD_ALIAS[value as MethodName] || METHOD_ALIAS[value = value.toLowerCase() as MethodName]) {
+            return value as MethodName;
+        }
     }
 }
 
@@ -310,8 +311,16 @@ function rotateAnim(cmd: CommandData) {
     }
 }
 
+function setBackground(instance: JimpInstance, args: unknown[]) {
+    instance.background = jimp_utils.rgbaToInt(...args as [number, number, number, number]);
+}
+
 function removeFile(pathname: string) {
     fs.unlink(pathname, () => {});
+}
+
+function errorParameters(alias: string, value: unknown) {
+    throw errorMessage(alias, ERR_MESSAGE.PARAMETERS, JSON.stringify(value));
 }
 
 const hasTransform = (cmd: CommandData) => !!(cmd.rotate || cmd.resize || cmd.crop || cmd.method || typeof cmd.opacity === 'number' && cmd.opacity >= 0 && cmd.opacity < 1);
@@ -364,82 +373,33 @@ class JimpHandler implements IJimpHandler<IFileManager> {
         if (this.aborted) {
             return;
         }
-        for (const [name, args = []] of this.instance.methodData || []) {
-            try {
-                const alias = getMethodName(name);
-                if (!alias) {
-                    throw errorValue(ERR_IMAGE.METHOD_NAME, name);
-                }
-                const errorParameters = (value: unknown) => {
-                    throw errorMessage(alias, ERR_MESSAGE.PARAMETERS, JSON.stringify(value));
-                };
-                switch (alias) {
-                    case 'composite': {
+        const data = this.instance.methodData;
+        if (data) {
+            for (const [name, args = []] of data) {
+                try {
+                    const alias = getMethodName(name);
+                    if (alias === 'composite') {
                         const [src, x, y, opts] = args;
                         if (isString(src) && typeof x === 'number' && typeof y === 'number') {
                             this.handler.composite(await jimp.Jimp.read(src), x, y, opts as undefined);
                         }
                         else {
-                            errorParameters(args);
+                            errorParameters(alias, args);
                         }
-                        break;
                     }
-                    case 'background':
-                        if (args.length === 4) {
-                            this.background(args as [number, number, number, number]);
-                            break;
+                    else if (alias) {
+                        const result = Jimp.applyMethod(this.handler, alias, ...args);
+                        if (result.length > 0) {
+                            this.instance.addLog(this.instance.statusType.WARN, ERR_MESSAGE.PARAMETERS + `: ${result.join(', ')}`, alias);
                         }
-                        if (args.length === 1) {
-                            if (typeof args[0] === 'number') {
-                                this.background(args[0]);
-                                break;
-                            }
-                            if (Array.isArray(args[0])) {
-                                this.background(args[0] as [number, number, number, number]);
-                                break;
-                            }
-                        }
-                        errorParameters(args);
-                        break;
-                    default: {
-                        if (METHOD_NONE.includes(alias)) {
-                            this.handler[alias]();
-                            break;
-                        }
-                        const arg = args.shift();
-                        switch (alias) {
-                            case 'blur':
-                            case 'gaussian':
-                            case 'brightness':
-                            case 'contrast':
-                            case 'posterize':
-                            case 'opacity':
-                            case 'fade':
-                                if (isPlainObject(arg)) {
-                                    errorParameters(args);
-                                }
-                                this.handler[alias](+(arg as string));
-                                break;
-                            case 'pixelate':
-                            case 'convolute':
-                                (this.handler[alias] as FunctionType<JimpInstance>)(arg);
-                                break;
-                            default:
-                                if (!isPlainObject(arg)) {
-                                    errorParameters(arg);
-                                }
-                                (this.handler[alias] as FunctionType<JimpInstance>)(arg);
-                                break;
-                        }
-                        break;
+                    }
+                    else {
+                        throw errorValue(ERR_IMAGE.METHOD_NAME, name);
                     }
                 }
-                if (args.length > 0) {
-                    this.instance.addLog(this.instance.statusType.WARN, ERR_MESSAGE.PARAMETERS + `: ${args.join(', ')}`, alias);
+                catch (err) {
+                    this.instance.writeFail([ERR_MESSAGE.UNKNOWN, STRINGS.MODULE_NAME + ': ' + name], err, LOG_TYPE.IMAGE);
                 }
-            }
-            catch (err) {
-                this.instance.writeFail([ERR_MESSAGE.UNKNOWN, STRINGS.MODULE_NAME + ': ' + name], err, LOG_TYPE.IMAGE);
             }
         }
     }
@@ -783,6 +743,68 @@ class Jimp extends Image {
         instance.rotate(data.values[0]);
     }
 
+    static applyMethod(instance: JimpInstance, name: string, ...args: unknown[]) {
+        const alias = getMethodName(name);
+        if (!alias) {
+            throw errorValue(ERR_IMAGE.METHOD_NAME, name);
+        }
+        switch (alias) {
+            case 'background':
+                if (args.length === 4) {
+                    setBackground(instance, args);
+                    break;
+                }
+                if (args.length === 1) {
+                    if (typeof args[0] === 'number') {
+                        instance.background = args[0];
+                        break;
+                    }
+                    if (Array.isArray(args[0])) {
+                        setBackground(instance, args[0]);
+                        break;
+                    }
+                }
+                errorParameters(alias, args);
+                break;
+            case 'sepia':
+            case 'normalize':
+            case 'invert':
+            case 'greyscale':
+            case 'dither':
+                instance[alias]();
+                break;
+            default: {
+                const arg = args.shift();
+                switch (alias) {
+                    case 'blur':
+                    case 'gaussian':
+                    case 'brightness':
+                    case 'contrast':
+                    case 'posterize':
+                    case 'opacity':
+                    case 'fade':
+                        if (isPlainObject(arg)) {
+                            errorParameters(alias, args);
+                        }
+                        instance[alias](+(arg as string));
+                        break;
+                    case 'pixelate':
+                    case 'convolute':
+                        (instance[alias] as FunctionType<JimpInstance>)(arg);
+                        break;
+                    default:
+                        if (!isPlainObject(arg)) {
+                            errorParameters(alias, arg);
+                        }
+                        (instance[alias] as FunctionType<JimpInstance>)(arg);
+                        break;
+                }
+                break;
+            }
+        }
+        return args;
+    }
+
     protected _moduleName = STRINGS.MODULE_NAME;
     protected _threadable = true;
 
@@ -815,12 +837,11 @@ class Jimp extends Image {
             }
             if (method) {
                 const values = method.map(item => [getMethodName(item[0]) || item[0], item[1]] as [string, unknown[]?]);
-                if (!values.every(item => METHOD_NONE.includes(item[0]))) {
+                if (values.find(item => !item[0] || item[0] === 'composite')) {
                     return null;
                 }
                 command.method = values;
             }
-            return command;
         }
         return null;
     }

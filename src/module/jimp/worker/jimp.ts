@@ -15,11 +15,11 @@ const PORT: MessagePort = workerData[0];
 parentPort!.on('message', (value: JimpMessage<JPEGOptions>) => {
     const { data, commandData, output, options } = value;
     Jimp.read(typeof data === 'string' ? data : Image.asBuffer(data))
-        .then(img => {
+        .then(async img => {
             const { method, resize, crop, rotate, opacity = -1 } = commandData;
             if (method) {
-                for (const [name] of method) {
-                    img[name as "sepia"]();
+                for (const [name, args = []] of method) {
+                    Jimp2.applyMethod(img as JimpInstance, name, ...args);
                 }
             }
             if (resize) {

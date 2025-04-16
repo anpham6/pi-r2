@@ -51,6 +51,7 @@ export interface JimpImageConstructor<T extends IFileManager<U>, U extends Exter
     applyResize(instance: JimpInstance, data: ResizeData): void;
     applyCrop(instance: JimpInstance, data: CropData): void;
     applyRotate(instance: JimpInstance, data: RotateData): void;
+    applyMethod(instance: JimpInstance, name: string, ...args: unknown[]): unknown[];
     readonly prototype: IJimpImage<T, U, V>;
     new(module?: V, ...args: unknown[]): IJimpImage<T, U, V>;
 }
