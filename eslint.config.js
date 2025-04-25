@@ -1,13 +1,11 @@
 const sqd = require('sqd-eslint');
-const tseslint = require('typescript-eslint');
+const { defineConfig, globalIgnores } = require('eslint/config');
 
-module.exports = tseslint.config(
-    {
-        ignores: [
-            'build/',
-            'publish/**/*.js'
-        ]
-    },
+module.exports = defineConfig(
+    globalIgnores([
+        'build/',
+        'publish/**/*.js'
+    ]),
     ...sqd.configs.base,
     ...sqd.configs.nodejs,
     ...sqd.configs['pi-r'],

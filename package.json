@@ -72,7 +72,7 @@
     "@e-mc/image": "^0.11.8",
     "@e-mc/module": "^0.11.8",
     "@e-mc/types": "^0.11.8",
-    "@ibm-cloud/cloudant": "^0.12.2",
+    "@ibm-cloud/cloudant": "^0.12.3",
     "@jimp/utils": "*",
     "@pi-r/aws": "^0.9.4",
     "@pi-r/aws-lib": "^0.9.4",
@@ -87,10 +87,10 @@
     "@types/imagemin-optipng": "^5.2.4",
     "@types/imagemin-pngquant": "^7.0.0",
     "@types/imagemin-webp": "^7.0.3",
-    "@types/node": "^22.14.1",
+    "@types/node": "^22.15.2",
     "@types/pngjs": "*",
     "@types/uglify-js": "^3.17.5",
-    "eslint": "9.23.0",
+    "eslint": "9.25.1",
     "file-type": "^19.6.0",
     "gifwrap": "*",
     "ibm-cloud-sdk-core": "*",
@@ -101,9 +101,8 @@
     "source-map-js": "*",
     "sqd-admin": "^0.16.1",
     "sqd-build": "^0.6.1",
-    "sqd-eslint": "0.8.0",
+    "sqd-eslint": "0.8.1",
     "svgo": "^3.3.2",
-    "typescript": "5.8.3",
-    "typescript-eslint": "8.28.0"
+    "typescript": "5.8.3"
   }
 }
