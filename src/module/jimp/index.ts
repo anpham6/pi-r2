@@ -26,7 +26,7 @@ import jimp_utils = require('@jimp/utils');
 import gifwrap = require('gifwrap');
 import bmp = require('bmp-js');
 
-import { WorkerChannel } from '@e-mc/core';
+import { WorkerChannel, WorkerGroup } from '@e-mc/core';
 
 const Image = require('@e-mc/image') as JimpImageConstructor<IFileManager>;
 
@@ -1244,7 +1244,7 @@ class Jimp extends Image {
                                 timer = setTimeout(() => {
                                     void worker.terminate();
                                     failed(ERR_MESSAGE.WORKER_TIMEOUT);
-                                }, file.worker);
+                                }, WorkerGroup.checkTimeout(file.worker, true));
                             }
                             return;
                         }
