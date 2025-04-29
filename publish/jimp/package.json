@@ -1,6 +1,6 @@
 {
   "name": "@pi-r2/jimp",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Jimp V1 image constructor for E-mc.",
   "main": "index.js",
   "types": "index.d.ts",
@@ -20,9 +20,9 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/core": "^0.11.8",
-    "@e-mc/image": "^0.11.8",
-    "@e-mc/types": "^0.11.8",
+    "@e-mc/core": "^0.12.0",
+    "@e-mc/image": "^0.12.0",
+    "@e-mc/types": "^0.12.0",
     "@jimp/utils": "^1.6.0",
     "bmp-js": "^0.1.0",
     "gifwrap": "^0.10.1",

@@ -1,6 +1,6 @@
 {
   "name": "@pi-r2/imagemin",
-  "version": "0.0.3",
+  "version": "0.2.0",
   "type": "module",
   "description": "imagemin transform function for E-mc.",
   "main": "index.js",
@@ -20,7 +20,7 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/types": "^0.11.8",
+    "@e-mc/types": "^0.12.0",
     "file-type": "^19.6.0",
     "imagemin-gifsicle": "^7.0.0",
     "imagemin-jpegtran": "^8.0.0",
