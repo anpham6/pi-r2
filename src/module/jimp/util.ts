@@ -87,7 +87,7 @@ export async function importBinary(name: string, pathname: string | undefined): 
     if (pathname && fs.existsSync(pathname)) {
         name += Image.PLATFORM_WIN32 ? '.exe' : '';
         const bin = path.join(pathname, name);
-        return types.sanitizeCmd(fs.existsSync(bin) ? bin : path.join(pathname, 'bin', name));
+        return fs.existsSync(bin) ? bin : path.join(pathname, 'bin', name);
     }
     return types.importESM(name + '-bin', true);
 }

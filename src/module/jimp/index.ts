@@ -30,7 +30,7 @@ import { WorkerChannel, WorkerGroup } from '@e-mc/core';
 
 const Image = require('@e-mc/image') as JimpImageConstructor<IFileManager>;
 
-import { ERR_CODE, createAbortError, errorMessage, errorValue, isPlainObject, isString, parseExpires } from '@e-mc/types';
+import { ERR_CODE, createAbortError, errorMessage, errorValue, isPlainObject, isString, parseExpires, sanitizeCmd } from '@e-mc/types';
 
 import util = require('./util');
 
@@ -468,7 +468,7 @@ class JimpHandler implements IJimpHandler<IFileManager> {
             }
             args.push('-o', util.normalizePath(outFile));
             try {
-                child_process.execFile(await util.importBinary('cwebp', webp.path), args, { shell: true, signal: this.instance.signal, ...execOptions(settings) }, err => {
+                child_process.execFile(sanitizeCmd(await util.importBinary('cwebp', webp.path), args), { shell: true, signal: this.instance.signal, ...execOptions(settings) }, err => {
                     if (err) {
                         this.instance.writeFail([ERR_MESSAGE.CONVERT_FILE, path.basename(outFile)], err, LOG_TYPE.IMAGE);
                     }
@@ -1014,7 +1014,7 @@ class Jimp extends Image {
                         }
                         args.push('-o', util.normalizePath(webp));
                         try {
-                            child_process.execFile(await util.importBinary('gif2webp', webp_path), args, { shell: true, signal: this.signal, ...execOptions(this.settings) }, (err, stdout) => {
+                            child_process.execFile(sanitizeCmd(await util.importBinary('gif2webp', webp_path), args), { shell: true, signal: this.signal, ...execOptions(this.settings) }, (err, stdout) => {
                                 if (!err) {
                                     this.addLog(this.statusType.INFO, stdout);
                                     finalize(webp);
@@ -1196,7 +1196,7 @@ class Jimp extends Image {
                 };
                 const bmpFile = getTempPath(this, 'bmp');
                 try {
-                    child_process.execFile(await util.importBinary('dwebp', this.settings.webp?.path), [util.normalizePath(localUri), '-bmp', '-o', util.normalizePath(bmpFile)], { shell: true, signal: this.signal, ...execOptions(this.settings) }, err => {
+                    child_process.execFile(sanitizeCmd(await util.importBinary('dwebp', this.settings.webp?.path), [util.normalizePath(localUri), '-bmp', '-o', util.normalizePath(bmpFile)]), { shell: true, signal: this.signal, ...execOptions(this.settings) }, err => {
                         if (!err) {
                             transformBuffer(bmpFile);
                         }
