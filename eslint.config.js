@@ -27,5 +27,5 @@ module.exports = defineConfig(
         rules: {
             '@typescript-eslint/no-confusing-void-expression': 'off'
         }
-    },
+    }
 );

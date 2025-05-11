@@ -1,0 +1,27 @@
+{
+  "name": "@pi-r2/redis",
+  "version": "0.0.1",
+  "description": "Redis client driver for E-mc.",
+  "main": "client/index.js",
+  "types": "client/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anpham6/pi-r2.git",
+    "directory": "src/db/redis"
+  },
+  "keywords": [
+    "squared",
+    "e-mc"
+  ],
+  "author": "An Pham <anpham6@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/anpham6/pi-r#readme",
+  "dependencies": {
+    "@e-mc/db": "^0.12.2",
+    "@e-mc/types": "^0.12.2",
+    "redis": "^5.0.1"
+  }
+}

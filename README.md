@@ -24,6 +24,10 @@
 * [@pi-r2/ibm](https://www.ibm.com/cloud/free)
 * [@pi-r2/minio](https://min.io)
 
+## Db
+
+* [@pi-r2/redis](https://github.com/redis/node-redis) (incubating)
+
 ## Image
 
 * [@pi-r2/jimp](https://github.com/jimp-dev/jimp) (worker)
