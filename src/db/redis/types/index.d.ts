@@ -9,6 +9,7 @@ import type { RedisJSON } from '@redis/json/dist/lib/commands';
 import type { RedisArgument } from '@redis/client/dist/lib/RESP/types';
 import type { CommandOptions } from '@redis/client/dist/lib/client/commands-queue';
 import type { ScanOptions } from '@redis/client/dist/lib/commands/SCAN';
+import type { CreateOptions } from '@redis/search/dist/lib/commands/CREATE';
 import type { FtAggregateOptions } from '@redis/search/dist/lib/commands/AGGREGATE';
 import type { FtSearchOptions } from '@redis/search/dist/lib/commands/SEARCH';
 import type { JsonGetOptions } from '@redis/json/dist/lib/commands/GET';
@@ -26,7 +27,7 @@ export interface RedisDataSource extends DbDataSource<string, PlainObject, Redis
     iterations?: number | number[];
     options?: {
         client?: RedisClientOptions;
-        /** @deprecated RedisClientOptions.commandOptions */
+        /** @deprecated client.commandOptions */
         command?: CommandOptions;
         get?: JsonGetOptions;
         search?: FtSearchOptions;
@@ -69,11 +70,11 @@ export interface RedisJSONValue extends RedisCommand<"JSON", string, RedisJSON |
     index?: number | string;
 }
 
-export interface RedisQuery {
+export interface RedisQuery<T = CreateOptions> {
     index?: string;
     schema?: RediSearchSchema | string;
     query?: string;
-    options?: PlainObject;
+    options?: T;
 }
 
 export interface JsonMSetItem {

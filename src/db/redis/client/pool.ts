@@ -9,7 +9,7 @@ const DbPool = require('@e-mc/db/pool') as DbPoolConstructor<RedisDataSource, Re
 const POOL_ACTIVE = new WeakSet<DbPoolCredential>();
 
 class RedisPool extends DbPool {
-    static override CACHE_IGNORE = ['credentialsProvider'] satisfies Array<keyof RedisClientOptions>;
+    static override CACHE_IGNORE = ['modules', 'functions', 'scripts', 'credentialsProvider'] satisfies Array<keyof RedisClientOptions>;
 
     static override asString(credential: DbPoolCredential) {
         if (credential.url) {
