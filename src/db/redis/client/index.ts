@@ -128,7 +128,6 @@ export async function setCredential(this: IDb, item: RedisDataSource) {
         clientPool.on('end', () => {
             delete POOL_STATE[poolKey];
         });
-        await clientPool.connect();
         const instance = new DbPool(clientPool, poolKey, username && password ? { username, password } : undefined).add(item);
         instance.parent = POOL_STATE;
         instance.success = 1;
@@ -175,16 +174,24 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
     const caching = this.hasCache(STRINGS.MODULE_NAME, sessionKey);
     const tasks: Promise<QueryResult>[] = new Array(length);
     const clients: RedisClientType[] = [];
+    const pools: RedisClientPoolType[] = [];
     let redisClient: RedisClientType | RedisClientPoolType | undefined,
+        redisPool: RedisClientPoolType | undefined,
         redisCredential: RedisClientOptions | undefined,
         onceCredential = connectOnce ? batch[0].options?.client : undefined;
     const getConnection = async (item: RedisDataSource, credential: RedisClientOptions) => {
+        if (redisPool) {
+            return redisPool;
+        }
         item.transactionState = DB_TRANSACTION.AUTH;
         let client: RedisClientType | RedisClientPoolType | undefined;
         if (item.usePool) {
             const pool = DbPool.findKey(POOL_STATE, item.usePool, DbPool.asString(credential), ...connectOnce ? [item, batch[0]] : [item]);
             if (pool) {
-                client = await pool.getConnection(credential);
+                pools.push(client = await pool.getConnection(credential));
+                if (connectOnce) {
+                    redisPool = client;
+                }
                 pool.connected = true;
             }
         }
@@ -666,11 +673,14 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
     return this.processRows(
         batch,
         tasks,
-        clients.length === 0 ? parallel : {
+        {
             parallel,
             disconnect() {
                 for (const item of clients) {
                     item.destroy();
+                }
+                for (const item of pools) {
+                    void item.close();
                 }
             }
         },

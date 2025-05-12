@@ -35,7 +35,7 @@ class RedisPool extends DbPool {
         if (credential) {
             POOL_ACTIVE.add(credential);
         }
-        return this.client as RedisClientPoolType;
+        return this.client.connect() as Promise<RedisClientPoolType>;
     }
     async close() {
         return this.client.close();
