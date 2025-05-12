@@ -26,7 +26,18 @@
 
 ## Db
 
-* [@pi-r2/redis](https://github.com/redis/node-redis) (incubating)
+### Redis
+
+* [@pi-r2/redis](https://e-mc.readthedocs.io/en/latest/db/redis.html)
+* redis/docker
+* Incubating
+
+```sh
+docker build -f docker/redis.Dockerfile --tag squared:redis --build-arg NODE_SCOPE=@pi-r2 .
+docker run -d --name redis --rm -p 6379:6379 \
+       --mount type=bind,source=$PWD/docker/app/redis5.js,target=/client/redis/app.js squared:redis
+docker exec -it -e 'REDIS_KEY=["card:1", "card:2"]' -e 'REDIS_PATH=$.description' redis rundb
+```
 
 ## Image
 
