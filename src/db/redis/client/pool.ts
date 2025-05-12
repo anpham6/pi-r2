@@ -41,13 +41,10 @@ class RedisPool extends DbPool {
         return this.client.close();
     }
     isEmpty() {
-        return this.closed || this.closeable;
+        return this.closed || this.client.totalClients === 0;
     }
     get closed() {
         return !this.client.isOpen;
-    }
-    get closeable() {
-        return this.client.totalClients === 0;
     }
 }
 

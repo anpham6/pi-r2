@@ -549,6 +549,7 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                 }
                 const commandOptions = credential.commandOptions || clientOptions.command;
                 if (isPlainObject<CommandOptions>(commandOptions)) {
+                    commandOptions.abortSignal ||= this.signal;
                     client = client.withCommandOptions(commandOptions);
                 }
                 commandType = this.commandType.SELECT;
