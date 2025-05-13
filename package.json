@@ -30,7 +30,7 @@
     "publish:prod:document": "cd publish/clean-css && npm publish && cd ../csso && npm publish && cd ../html-minifier && npm publish && cd ../svgo && npm publish && cd ../uglify-js && npm publish",
     "publish:dev:module": "cd publish/jimp && npm publish --dry-run",
     "publish:prod:module": "cd publish/jimp && npm publish",
-    "copy:types": "npx admin copy -s -i \"**/*.d.ts\" -m ./src/cloud ./publish && npx admin copy -s -i \"**/*.d.ts\" -m ./src/module ./publish",
+    "copy:types": "npx admin copy -s -i \"**/*.d.ts\" -m ./src/cloud ./publish && npx admin copy -s -i \"**/*.d.ts\" -m ./src/db ./publish && npx admin copy -s -i \"**/*.d.ts\" -m ./src/module ./publish",
     "copy:base": "npx admin copy -s ./publish ../squared/node_modules/@pi-r2",
     "copy:from:emc": "npx admin copy -s ../e-mc/publish ./node_modules/@e-mc",
     "copy:from:pir": "npx admin copy -s ../pi-r/publish ./node_modules/@pi-r",
@@ -96,7 +96,7 @@
     "rollup": "^4.40.2",
     "source-map-js": "*",
     "sqd-admin": "^0.17.0",
-    "sqd-build": "^0.7.0",
+    "sqd-build": "^0.7.1",
     "sqd-eslint": "0.8.2",
     "svgo": "^3.3.2",
     "typescript": "5.8.3"
