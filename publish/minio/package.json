@@ -19,9 +19,9 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/cloud": "^0.12.3",
-    "@e-mc/module": "^0.12.3",
-    "@e-mc/types": "^0.12.3",
+    "@e-mc/cloud": "^0.12.4",
+    "@e-mc/module": "^0.12.4",
+    "@e-mc/types": "^0.12.4",
     "minio": "^8.0.5"
   }
 }
