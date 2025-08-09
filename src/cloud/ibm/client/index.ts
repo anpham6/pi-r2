@@ -11,7 +11,7 @@ import type { S3 } from 'ibm-cos-sdk';
 import type { AuthenticatorInterface } from 'ibm-cloud-sdk-core';
 import type { Document, PostPartitionAllDocsParams, PostPartitionFindParams } from '@ibm-cloud/cloudant/cloudant/v1';
 
-import { ERR_DB, ERR_MESSAGE } from '@e-mc/types/constant';
+import { ERR_DB, ERR_MESSAGE, STATUS_TYPE } from '@e-mc/types/constant';
 import { HTTP_STATUS } from '@e-mc/types/lib/http';
 
 import ibm = require('ibm-cloud-sdk-core');
@@ -21,7 +21,7 @@ import aws = require('@pi-r/aws');
 
 import Cloud = require('@e-mc/cloud');
 
-import { STATUS_TYPE, isArray, isString } from '@e-mc/types';
+import { isArray, isString } from '@e-mc/types';
 import { formatError } from '@e-mc/cloud/util';
 
 const enum STRINGS {
