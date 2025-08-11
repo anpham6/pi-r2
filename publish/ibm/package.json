@@ -23,7 +23,7 @@
     "@e-mc/module": "^0.12.5",
     "@e-mc/types": "^0.12.5",
     "@pi-r/aws": "^0.10.2",
-    "@ibm-cloud/cloudant": "^0.12.5",
+    "@ibm-cloud/cloudant": "^0.12.7",
     "ibm-cloud-sdk-core": "^5.4.2",
     "ibm-cos-sdk": "^1.14.1"
   }

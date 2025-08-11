@@ -47,7 +47,7 @@
     "clean:prod": "npm run clean && npx admin remove -E js -s publish"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20"
   },
   "repository": {
     "type": "git",
@@ -66,7 +66,7 @@
     "@e-mc/image": "^0.12.5",
     "@e-mc/module": "^0.12.5",
     "@e-mc/types": "^0.12.5",
-    "@ibm-cloud/cloudant": "^0.12.5",
+    "@ibm-cloud/cloudant": "^0.12.7",
     "@jimp/js-jpeg": "*",
     "@jimp/utils": "*",
     "@pi-r/aws": "^0.10.2",
@@ -85,11 +85,11 @@
     "@types/imagemin-optipng": "^5.2.4",
     "@types/imagemin-pngquant": "^7.0.0",
     "@types/imagemin-webp": "^7.0.3",
-    "@types/node": "22.15.32",
+    "@types/node": "^24.2.1",
     "@types/pngjs": "*",
     "@types/uglify-js": "^3.17.5",
-    "eslint": "9.25.1",
-    "file-type": "^18.7.0",
+    "eslint": "9.32.0",
+    "file-type": "^20.5.0",
     "gifwrap": "*",
     "ibm-cloud-sdk-core": "*",
     "ibm-cos-sdk": "^1.14.1",
@@ -98,10 +98,10 @@
     "redis": "^5.8.0",
     "rollup": "^4.46.2",
     "source-map-js": "*",
-    "sqd-admin": "^0.17.1",
+    "sqd-admin": "^0.18.0",
     "sqd-build": "^0.7.1",
-    "sqd-eslint": "0.8.2",
+    "sqd-eslint": "0.11.0",
     "svgo": "^3.3.2",
-    "typescript": "5.8.3"
+    "typescript": "5.9.2"
   }
 }

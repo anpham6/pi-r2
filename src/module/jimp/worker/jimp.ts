@@ -47,7 +47,7 @@ parentPort!.on('message', (value: JimpMessage<JPEGOptions>) => {
             else {
                 void img.getBuffer(value.outputType as "image/jpeg", options)
                     .then(result => {
-                        PORT.postMessage(result, [result.buffer]);
+                        PORT.postMessage(result, [result.buffer as ArrayBuffer]);
                     });
             }
         })
