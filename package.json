@@ -88,7 +88,7 @@
     "@types/node": "22.15.32",
     "@types/pngjs": "*",
     "@types/uglify-js": "^3.17.5",
-    "eslint": "9.25.1",
+    "eslint": "9.33.0",
     "file-type": "^18.7.0",
     "gifwrap": "*",
     "ibm-cloud-sdk-core": "*",
@@ -100,7 +100,7 @@
     "source-map-js": "*",
     "sqd-admin": "^0.17.1",
     "sqd-build": "^0.7.1",
-    "sqd-eslint": "0.8.2",
+    "sqd-eslint": "0.9.0",
     "svgo": "^3.3.2",
     "typescript": "5.8.3"
   }
