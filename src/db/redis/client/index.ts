@@ -212,7 +212,7 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
     }
     for (let i = 0; i < length; ++i) {
         const item = batch[i];
-        const { source, key, format = 'HASH', search, aggregate, options: clientOptions = {}, ignoreCache } = item;
+        const { source, key, format = 'HASH', search, aggregate, streams, options: clientOptions = {}, ignoreCache } = item;
         let credential = (redisCredential || onceCredential) as DbPoolCredential | undefined,
             error: unknown;
         if (!credential && !isPlainObject<DbPoolCredential>(credential = clientOptions.client!) && (error = errorMessage(source, ERR_DB.CREDENTIALS)) || !(isString(key) || isArray(key) || isPlainObject(search) && (isPlainObject(search.schema) || isString(search.query)) || isPlainObject(aggregate) && (isPlainObject(aggregate.schema) || isString(aggregate.query))) && (error = errorMessage(source, ERR_DB.QUERY, item.uri))) {
@@ -243,6 +243,9 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
             }
             else if (isObject(aggregate)) {
                 queryString = Db.asString(aggregate, true);
+            }
+            else if (streams) {
+                queryString = Db.asString(streams, true);
             }
             else if (!targetObject) {
                 queryString = Db.asString(key, true);
@@ -584,6 +587,12 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                         }
                     }
                 }
+                else if (streams) {
+                    const data = await client.xRead(streams, clientOptions.xread);
+                    if (data) {
+                        rows = data;
+                    }
+                }
                 else if (key) {
                     let data: unknown;
                     if (Array.isArray(key)) {
@@ -596,6 +605,9 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                                 break;
                             case 'HSCAN':
                                 data = await Promise.all(key.map(async (k, index) => doScan(client, k, index, item.cursor, item.iterations, clientOptions.scan)));
+                                break;
+                            case 'SMEMBERS':
+                                data = await Promise.all(key.map(async k => client.sMembers(k)));
                                 break;
                             case 'JSON':
                                 data = (await client.json.mGet(key.map(c => b(c)), item.path || '$')).flat();
@@ -615,6 +627,9 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                                 break;
                             case 'HSCAN':
                                 data = await doScan(client, key, 0, item.cursor, item.iterations, clientOptions.scan);
+                                break;
+                            case 'SMEMBERS':
+                                data = await client.sMembers(key);
                                 break;
                             case 'JSON':
                                 data = await client.json.get(b(key), clientOptions.get);

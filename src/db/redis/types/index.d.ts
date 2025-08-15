@@ -13,6 +13,7 @@ import type { CreateOptions } from '@redis/search/dist/lib/commands/CREATE';
 import type { FtAggregateOptions } from '@redis/search/dist/lib/commands/AGGREGATE';
 import type { FtSearchOptions } from '@redis/search/dist/lib/commands/SEARCH';
 import type { JsonGetOptions } from '@redis/json/dist/lib/commands/GET';
+import type { XReadOptions, XReadStreams } from '@redis/client/dist/lib/commands/XREAD';
 import type { RedisClientPoolType as IRedisClientPoolType, RediSearchSchema, RedisDefaultModules, RedisModules, SetOptions } from 'redis';
 
 export interface RedisDataSource extends DbDataSource<string, PlainObject, RedisSetValue | RedisSetValue[] | RedisJSONValue | RedisJSONValue[], RedisCredential, string>, CascadeAction, AuthValue {
@@ -20,9 +21,10 @@ export interface RedisDataSource extends DbDataSource<string, PlainObject, Redis
     key?: RedisArgument | RedisArgument[];
     field?: RedisArgument | string[];
     path?: string;
-    format?: RedisFormat | "HKEYS" | "HVALS" | "HSCAN";
+    format?: RedisFormat | "HKEYS" | "HVALS" | "HSCAN" | "SMEMBERS";
     search?: RedisQuery;
     aggregate?: RedisQuery;
+    streams?: XReadStreams;
     cursor?: RedisArgument | RedisArgument[] | number | number[];
     iterations?: number | number[];
     options?: {
@@ -32,6 +34,7 @@ export interface RedisDataSource extends DbDataSource<string, PlainObject, Redis
         get?: JsonGetOptions;
         search?: FtSearchOptions;
         aggregate?: FtAggregateOptions;
+        xread?: XReadOptions;
         scan?: ScanOptions;
     };
     database?: number;
