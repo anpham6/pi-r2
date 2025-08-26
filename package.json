@@ -47,7 +47,7 @@
     "clean:prod": "npm run clean && npx admin remove -E js -s publish"
   },
   "engines": {
-    "node": ">=18.20"
+    "node": ">=18.20.5"
   },
   "repository": {
     "type": "git",
@@ -61,11 +61,11 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/cloud": "^0.12.5",
-    "@e-mc/document": "^0.12.5",
-    "@e-mc/image": "^0.12.5",
-    "@e-mc/module": "^0.12.5",
-    "@e-mc/types": "^0.12.5",
+    "@e-mc/cloud": "^0.12.6",
+    "@e-mc/document": "^0.12.6",
+    "@e-mc/image": "^0.12.6",
+    "@e-mc/module": "^0.12.6",
+    "@e-mc/types": "^0.12.6",
     "@ibm-cloud/cloudant": "^0.12.7",
     "@jimp/js-jpeg": "*",
     "@jimp/utils": "*",
@@ -95,8 +95,8 @@
     "ibm-cos-sdk": "^1.14.1",
     "jimp": "^1.6.0",
     "minio": "^8.0.5",
-    "redis": "^5.8.0",
-    "rollup": "^4.46.2",
+    "redis": "^5.8.2",
+    "rollup": "^4.48.1",
     "source-map-js": "*",
     "sqd-admin": "^0.18.0",
     "sqd-build": "^0.7.1",

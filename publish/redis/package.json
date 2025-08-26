@@ -21,7 +21,7 @@
   "homepage": "https://github.com/anpham6/pi-r#readme",
   "dependencies": {
     "@e-mc/db": "^0.12.5",
-    "@e-mc/types": "^0.12.5",
-    "redis": "^5.8.0"
+    "@e-mc/types": "^0.12.6",
+    "redis": "^5.8.2"
   }
 }
