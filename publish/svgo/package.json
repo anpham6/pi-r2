@@ -19,7 +19,7 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/document": "^0.12.5",
+    "@e-mc/document": "^0.12.6",
     "@e-mc/types": "^0.12.6",
     "svgo": "^3.3.2"
   }

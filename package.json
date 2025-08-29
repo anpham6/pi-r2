@@ -66,7 +66,7 @@
     "@e-mc/image": "^0.12.6",
     "@e-mc/module": "^0.12.6",
     "@e-mc/types": "^0.12.6",
-    "@ibm-cloud/cloudant": "^0.12.7",
+    "@ibm-cloud/cloudant": "^0.12.8",
     "@jimp/js-jpeg": "*",
     "@jimp/utils": "*",
     "@pi-r/aws": "^0.10.2",
@@ -88,7 +88,7 @@
     "@types/node": "^24.2.1",
     "@types/pngjs": "*",
     "@types/uglify-js": "^3.17.5",
-    "eslint": "9.32.0",
+    "eslint": "9.34.0",
     "file-type": "^20.5.0",
     "gifwrap": "*",
     "ibm-cloud-sdk-core": "*",
@@ -100,7 +100,7 @@
     "source-map-js": "*",
     "sqd-admin": "^0.18.0",
     "sqd-build": "^0.7.1",
-    "sqd-eslint": "0.11.0",
+    "sqd-eslint": "0.11.1",
     "svgo": "^3.3.2",
     "typescript": "5.9.2"
   }
