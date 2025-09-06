@@ -1,4 +1,4 @@
-### @pi-r2/jimp
+### @pi-r/jimp
 
 https://e-mc.readthedocs.io/en/latest/image
 

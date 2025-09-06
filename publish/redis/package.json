@@ -1,5 +1,5 @@
 {
-  "name": "@pi-r2/redis",
+  "name": "@pi-r/redis",
   "version": "0.2.0",
   "description": "Redis client driver for E-mc.",
   "main": "client/index.js",

@@ -1,4 +1,4 @@
-### @pi-r2/imagemin
+### @pi-r/imagemin
 
 https://e-mc.readthedocs.io/en/latest/image
 

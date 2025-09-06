@@ -4,7 +4,7 @@
 * ES2022
 
 > [!CAUTION]
-> Unless otherwise noted these former `@pi-r` packages are unmaintained and untested. They are republished once per year with the **NodeJS LTS** turnover in April.
+> Unless otherwise noted any `@pi-r2` packages are unmaintained and untested. They are republished once per year with the **NodeJS LTS** turnover in April.
 
 ## General Usage
 
@@ -24,16 +24,17 @@
 * [@pi-r2/ibm](https://www.ibm.com/cloud/free)
 * [@pi-r2/minio](https://min.io)
 
+# Pi-r 0.11
+
 ## Db
 
 ### Redis
 
-* [@pi-r2/redis](https://e-mc.readthedocs.io/en/latest/db/redis.html)
+* [@pi-r/redis](https://e-mc.readthedocs.io/en/latest/db/redis.html)
 * redis/docker
-* Incubating
 
 ```sh
-docker build -f docker/redis.Dockerfile --tag squared:redis --build-arg NODE_SCOPE=@pi-r2 .
+docker build -f docker/redis.Dockerfile --tag squared:redis .
 docker run -d --name redis --rm -p 6379:6379 \
        --mount type=bind,source=$PWD/docker/app/redis5.js,target=/client/redis/app.js squared:redis
 docker exec -it -e 'REDIS_KEY=["card:1", "card:2"]' -e 'REDIS_PATH=$.description' redis rundb
@@ -41,11 +42,11 @@ docker exec -it -e 'REDIS_KEY=["card:1", "card:2"]' -e 'REDIS_PATH=$.description
 
 ## Image
 
-* [@pi-r2/jimp](https://github.com/jimp-dev/jimp) (worker)
+* [@pi-r/jimp](https://github.com/jimp-dev/jimp) (worker)
 
 ## Compress
 
-* [@pi-r2/imagemin](https://github.com/imagemin/imagemin) (worker)
+* [@pi-r/imagemin](https://github.com/imagemin/imagemin) (worker)
 
 ## LICENSE
 

@@ -1,4 +1,4 @@
-### @pi-r2/redis
+### @pi-r/redis
 
 https://e-mc.readthedocs.io/en/latest/db/redis.html
 

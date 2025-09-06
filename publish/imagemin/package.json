@@ -1,5 +1,5 @@
 {
-  "name": "@pi-r2/imagemin",
+  "name": "@pi-r/imagemin",
   "version": "0.2.1",
   "type": "module",
   "description": "imagemin transform function for E-mc.",

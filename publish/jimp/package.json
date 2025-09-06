@@ -1,5 +1,5 @@
 {
-  "name": "@pi-r2/jimp",
+  "name": "@pi-r/jimp",
   "version": "0.2.1",
   "description": "Jimp V1 image constructor for E-mc.",
   "main": "index.js",
