@@ -15,7 +15,7 @@ import type { DecodeJpegOptions } from "@jimp/js-jpeg";
 
 import type * as gw from 'gifwrap';
 
-import { ERR_IMAGE, ERR_MESSAGE, LOG_TYPE } from '@e-mc/types/constant';
+import { ERR_IMAGE, ERR_MESSAGE, LOG_TYPE, STATUS_TYPE } from '@e-mc/types/constant';
 
 import path = require('node:path');
 import fs = require('node:fs');
@@ -1016,7 +1016,7 @@ class Jimp extends Image {
                         try {
                             child_process.execFile(sanitizeCmd(await util.importBinary('gif2webp', webp_path), args), { shell: true, signal: this.signal, ...execOptions(this.settings) }, (err, stdout) => {
                                 if (!err) {
-                                    this.addLog(this.statusType.INFO, stdout);
+                                    this.addLog(STATUS_TYPE.INFO, stdout);
                                     finalize(webp);
                                 }
                                 else {
@@ -1250,7 +1250,7 @@ class Jimp extends Image {
                         }
                     }
                     catch (err) {
-                        this.addLog(this.statusType.WARN, err, { source: 'worker' });
+                        this.addLog(STATUS_TYPE.WARN, err, { source: 'worker' });
                     }
                 }
                 transformBuffer();

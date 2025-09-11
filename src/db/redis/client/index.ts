@@ -6,7 +6,7 @@ import type { CommandOptions, DbPoolCredential, JsonMSetItem, RedisArgument, Red
 
 import type { RediSearchSchema, RedisClientOptions, RedisClientType, RedisPoolOptions } from 'redis';
 
-import { DB_TRANSACTION, ERR_DB, ERR_MESSAGE, LOG_TYPE } from '@e-mc/types/constant';
+import { DB_TRANSACTION, ERR_DB, ERR_MESSAGE, LOG_TYPE, STATUS_TYPE } from '@e-mc/types/constant';
 
 import redis = require('redis');
 
@@ -574,7 +574,7 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                         }
                     }
                     catch (err) {
-                        this.addLog(this.statusType.WARN, err, { source: target === search ? 'FT.SEARCH' : 'FT.AGGREGATE' });
+                        this.addLog(STATUS_TYPE.WARN, err, { source: target === search ? 'FT.SEARCH' : 'FT.AGGREGATE' });
                         if (err instanceof Error) {
                             throw err;
                         }

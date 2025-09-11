@@ -36,7 +36,7 @@
 ```sh
 docker build -f docker/redis.Dockerfile --tag squared:redis .
 docker run -d --name redis --rm -p 6379:6379 \
-       --mount type=bind,source=$PWD/docker/app/redis5.js,target=/client/redis/app.js squared:redis
+       --mount type=bind,source=$PWD/docker/app/redis.js,target=/client/redis/app.js squared:redis
 docker exec -it -e 'REDIS_KEY=["card:1", "card:2"]' -e 'REDIS_PATH=$.description' redis rundb
 ```
 
