@@ -4,7 +4,7 @@
 * ES2022
 
 > [!CAUTION]
-> Unless otherwise noted any `@pi-r2` packages are unmaintained and untested. They are republished once per year with the **NodeJS LTS** turnover in April.
+> Unless otherwise noted any `@pi-r2` packages are unmaintained and untested. They are republished once with each **NodeJS LTS** and `@e-mc` turnover to sustain minimum compatibility.
 
 ## General Usage
 

@@ -27,18 +27,21 @@ function download(this: IModule, credential: MinIOStorageCredential, service: st
         }
         minio.getObject(bucketName, filename, { versionId: target.versionId })
             .then(result => {
-                readableAsBuffer(result).then(buffer => callback(null, buffer)).catch(callback);
-                const deleteObject = target.deleteObject;
-                if (deleteObject) {
-                    const location = Cloud.joinPath(bucketName, filename);
-                    minio.removeObject(bucketName, filename, isPlainObject(deleteObject) ? deleteObject : { versionId: target.versionId })
-                        .then(() => {
-                            this.formatMessage(LOG_TYPE.CLOUD, service, VAL_CLOUD.DELETE_FILE, location, { ...Cloud.LOG_CLOUD_DELETE });
-                        })
-                        .catch((err: unknown) => {
-                            this.formatFail(LOG_TYPE.CLOUD, service, [ERR_CLOUD.DELETE_FAIL, location], err, { ...Cloud.LOG_CLOUD_FAIL, fatal: !!target.active });
-                        });
-                }
+                readableAsBuffer(result).then(buffer => {
+                    callback(null, buffer);
+                    const deleteObject = target.deleteObject;
+                    if (deleteObject) {
+                        const location = Cloud.joinPath(bucketName, filename);
+                        minio.removeObject(bucketName, filename, isPlainObject(deleteObject) ? deleteObject : { versionId: target.versionId })
+                            .then(() => {
+                                this.formatMessage(LOG_TYPE.CLOUD, service, VAL_CLOUD.DELETE_FILE, location, { ...Cloud.LOG_CLOUD_DELETE });
+                            })
+                            .catch((err: unknown) => {
+                                this.formatFail(LOG_TYPE.CLOUD, service, [ERR_CLOUD.DELETE_FAIL, location], err, { ...Cloud.LOG_CLOUD_FAIL, fatal: !!target.active });
+                            });
+                    }
+                })
+                .catch(callback);
             })
             .catch(callback);
     };

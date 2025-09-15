@@ -151,6 +151,11 @@ export async function deleteObjectsV3(this: IModule, credential: IBMStorageCrede
     return aws.deleteObjectsV3.call(this, credential, bucket, options, STRINGS.SERVICE, STRINGS.SDK);
 }
 
+export async function copyObject(this: IModule, credential: IBMStorageCredential, bucketSource: string, keySource: string, bucket: string, key: string, options = {} as S3.CopyObjectRequest) {
+    setStorageCredential(credential);
+    return aws.copyObject.call(this, credential, bucketSource, keySource, bucket, key, options, STRINGS.SERVICE, STRINGS.SDK);
+}
+
 export async function executeQuery(this: ICloud, credential: IBMDatabaseCredential, data: IBMDatabaseQuery, sessionKey?: string) {
     return (await executeBatchQuery.call(this, credential, [data], sessionKey))[0] || [];
 }

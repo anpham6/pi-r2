@@ -35,7 +35,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
     const minio = client.createStorageClient.call(this, credential);
     return async (data: UploadData<ItemBucketMetadata, ObjectCannedACL, unknown, MinIOPolicyType, LockConfig, unknown, LifecycleConfig>, callback) => {
         const { bucket: bucketName, localUri } = data;
-        const { pathname = '', flags = 0, fileGroup, contentType, metadata = {}, tags, endpoint, active, acl, publicRead, admin = {}, overwrite, options } = data.upload;
+        const { pathname, flags = 0, fileGroup, contentType, metadata = {}, tags, endpoint, active, acl, publicRead, admin = {}, overwrite, options } = data.upload;
         let filename = data.upload.filename || path.basename(localUri),
             bucketKey: string | undefined;
         const cleanup = () => {
@@ -100,7 +100,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
                         break;
                     }
                 }
-                exists = await minio.statObject(bucketName, pathname ? Cloud.joinPath(pathname, filename) : filename)
+                exists = await minio.statObject(bucketName, Cloud.joinPath(pathname, filename))
                     .then(() => true)
                     .catch((err: unknown) => {
                         if (err instanceof Error && (err as ErrorCode).code !== 'NotFound') {
@@ -151,7 +151,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
                 }
                 return;
             }
-            const objectName = pathname + Key[i];
+            const objectName = Cloud.joinPath(pathname, Key[i]);
             const type = ContentType[i] || Cloud.lookupMime(Key[i]) || 'application/octet-stream';
             const params: ItemBucketMetadata = first && metadata ? { ...metadata } : { ...options };
             const readable = publicRead || active && publicRead !== false && !acl;
