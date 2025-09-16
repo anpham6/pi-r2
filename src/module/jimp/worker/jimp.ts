@@ -6,9 +6,9 @@ import type { JPEGOptions, JimpInstance } from 'jimp';
 import { parentPort, workerData } from 'node:worker_threads';
 import { Jimp } from 'jimp';
 
-import Image = require('@e-mc/image');
+import jimp = require('@pi-r/jimp');
 
-import Jimp2 = require('@pi-r2/jimp');
+import Image = require('@e-mc/image');
 
 const PORT: MessagePort = workerData[0];
 
@@ -19,17 +19,17 @@ parentPort!.on('message', (value: JimpMessage<JPEGOptions>) => {
             const { method, resize, crop, rotate, opacity = -1 } = commandData;
             if (method) {
                 for (const [name, args = []] of method) {
-                    Jimp2.applyMethod(img as JimpInstance, name, ...args);
+                    jimp.applyMethod(img as JimpInstance, name, ...args);
                 }
             }
             if (resize) {
-                Jimp2.applyResize(img as JimpInstance, resize);
+                jimp.applyResize(img as JimpInstance, resize);
             }
             if (crop) {
-                Jimp2.applyCrop(img as JimpInstance, crop);
+                jimp.applyCrop(img as JimpInstance, crop);
             }
             if (rotate) {
-                Jimp2.applyRotate(img as JimpInstance, rotate);
+                jimp.applyRotate(img as JimpInstance, rotate);
             }
             if (opacity >= 0) {
                 img.opacity(opacity);

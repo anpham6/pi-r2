@@ -14,6 +14,8 @@ import type { JPEGOptions, JimpInstance, ResizeOptions, ResizeStrategy } from 'j
 import type { DecodeJpegOptions } from "@jimp/js-jpeg";
 
 import type * as gw from 'gifwrap';
+import type * as jf from 'jimp/fonts';
+import type * as jp from '@jimp/plugin-print';
 
 import { ERR_IMAGE, ERR_MESSAGE, LOG_TYPE, STATUS_TYPE } from '@e-mc/types/constant';
 
@@ -34,6 +36,15 @@ import { ERR_CODE, createAbortError, errorMessage, errorValue, isPlainObject, is
 
 import util = require('./util');
 
+interface CacheData {
+    tempKey: string;
+    tempFile: string;
+    ctimeMs: number;
+    localFile?: string;
+    mtimeMs?: number;
+    size?: number;
+}
+
 const kJimp = Symbol.for('jimp:constructor');
 
 let WEBPMUX: WebpMux | null = null,
@@ -46,22 +57,14 @@ try {
 catch {
 }
 
-interface CacheData {
-    tempKey: string;
-    tempFile: string;
-    ctimeMs: number;
-    localFile?: string;
-    mtimeMs?: number;
-    size?: number;
-}
-
 const enum STRINGS {
     MODULE_NAME = 'jimp',
     TRANSFORM = 'Transforming image...'
 }
 
 const CACHE_TRANSFORM: ObjectMap<CacheData> = {};
-const WORKER_JIMP = WorkerChannel.create<string | null>(path.join(__dirname, 'worker', 'jimp.js'), 'PIR2_JIMP');
+const FONT_DATA: ObjectMap<jp.BmFont> = {};
+const WORKER_JIMP = WorkerChannel.create<string | null>(path.join(__dirname, 'worker', 'jimp.js'), 'PIR_JIMP');
 let CACHE_INIT = false;
 let TEMP_DIR = '';
 
@@ -100,10 +103,34 @@ const METHOD_ALIAS = {
     circle: 'ci',
     fisheye: 'fe',
     threshold: 'th',
-    quantize: 'qu'
+    quantize: 'qu',
+    print: 'pr'
 };
 
 type MethodName = keyof typeof METHOD_ALIAS;
+
+{
+    const fonts = require('jimp/fonts') as typeof jf;
+    const tasks: Promise<unknown>[] = [];
+    const fontName: string[] = [];
+    for (const font in fonts) {
+        fontName.push(font);
+        tasks.push(jimp.loadFont(font));
+    }
+    void Promise.allSettled(tasks)
+        .then(result => {
+            for (let i = 0; i < result.length; ++i) {
+                const font = result[i];
+                const name = fontName[i];
+                if (font.status === 'fulfilled') {
+                    FONT_DATA[name] = font.value as jp.BmFont;
+                }
+                else {
+                    console.error(font.reason);
+                }
+            }
+        });
+}
 
 function getMethodName(value: unknown) {
     if (isString(value)) {
@@ -791,6 +818,17 @@ class Jimp extends Image {
                     case 'pixelate':
                     case 'convolute':
                         (instance[alias] as FunctionType<JimpInstance>)(arg);
+                        break;
+                    case 'print':
+                        if (isPlainObject<jp.PrintOptions & { font: jp.BmFont }>(arg)) {
+                            if (isString(arg.font)) {
+                                arg.font = FONT_DATA[arg.font]!;
+                            }
+                            instance.print(arg);
+                        }
+                        else {
+                            errorParameters(alias, arg);
+                        }
                         break;
                     default:
                         if (!isPlainObject(arg)) {
