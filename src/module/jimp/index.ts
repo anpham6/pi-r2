@@ -614,7 +614,7 @@ class JimpHandler implements IJimpHandler<IFileManager> {
 class Jimp extends Image {
     static [kJimp] = true;
 
-    static override async transform<T extends TransformOptions extends infer U ? U extends { tempFile: infer V } ? V extends true ? string : Buffer | null : never : never>(file: string | Buffer, command: string, options: TransformOptions = {}): Promise<T> {
+    static override async transform<T extends TransformOptions extends infer U ? U extends { tempFile: infer V } ? V extends true ? string : Buffer | null : never : never>(file: Bufferable, command: string, options: TransformOptions = {}): Promise<T> {
         const [outputType, saveAs, outputAs] = util.parseFormat(command = command.trim(), options.mimeType);
         if (!outputType) {
             return emptyResult(options);

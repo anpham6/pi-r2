@@ -151,7 +151,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
                 }
                 return;
             }
-            const objectName = Cloud.joinPath(pathname, Key[i]);
+            const objectName = Cloud.joinPath(pathname, Key[i], true);
             const type = ContentType[i] || Cloud.lookupMime(Key[i]) || 'application/octet-stream';
             const params: ItemBucketMetadata = first && metadata ? { ...metadata } : { ...options };
             const readable = publicRead || active && publicRead !== false && !acl;

@@ -6,9 +6,9 @@ import type { JPEGOptions, JimpInstance } from 'jimp';
 import { parentPort, workerData } from 'node:worker_threads';
 import { Jimp } from 'jimp';
 
-import jimp = require('@pi-r/jimp');
-
 import Image = require('@e-mc/image');
+
+import jimp = require('@pi-r/jimp');
 
 const PORT: MessagePort = workerData[0];
 
