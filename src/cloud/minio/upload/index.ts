@@ -10,7 +10,7 @@ import type { ObjectCannedACL } from '@pi-r/aws-lib/types';
 import type { Readable } from 'stream';
 import type { ItemBucketMetadata, LifecycleConfig, LockConfig } from 'minio';
 
-import { LOG_TYPE, STATUS_TYPE, TRANSFER_TYPE, VAL_CLOUD } from '@e-mc/types/constant';
+import { LOG_TYPE, TRANSFER_TYPE, VAL_CLOUD } from '@e-mc/types/constant';
 
 import path = require('node:path');
 import fs = require('node:fs');
@@ -20,7 +20,7 @@ import stream = require('node:stream');
 import Cloud = require('@e-mc/cloud');
 
 import { createAbortError, isPlainObject } from '@e-mc/types';
-import { createKeyAndBody, generateFilename } from '@e-mc/cloud/util';
+import { createErrorHandler, createKeyAndBody, generateFilename } from '@e-mc/cloud/util';
 
 import { MINIO } from '../client';
 
@@ -48,7 +48,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
             cleanup();
             callback(err);
         };
-        const addLog = (err: unknown) => this.addLog(STATUS_TYPE.WARN, err, service, bucketName);
+        const addLog = createErrorHandler(this, service, bucketName);
         if (!BUCKET_SESSION.has(bucketName)) {
             const bucketAcl = admin.publicRead ? 'public-read' : admin.acl;
             const response = BUCKET_RESPONSE[bucketKey = getBucketKey(credential, bucketName, bucketAcl)] ||= client.createBucketV2.call(this, credential, bucketName, bucketAcl);
