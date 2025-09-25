@@ -1,10 +1,9 @@
 import type { IFileManager, IHost, IImage, ImageConstructor } from '@e-mc/types/lib';
 import type { ExternalAsset } from '@e-mc/types/lib/asset';
 import type { WorkerMessage } from '@e-mc/types/lib/core';
-import type { CommandData, CropData, ResizeData, RotateData, TransformOptions } from '@e-mc/types/lib/image';
+import type { CommandData, CropData, Dimension, Point, ResizeData, RotateData, TransformOptions } from '@e-mc/types/lib/image';
 import type { ImageModule, ImageSettings } from '@e-mc/types/lib/settings';
 import type { ExecAction } from '@e-mc/types/lib/module';
-
 import type { ImageHandler } from '@e-mc/image/types';
 
 import type { JPEGOptions, JimpInstance } from 'jimp';
@@ -54,4 +53,25 @@ export interface JimpImageConstructor<T extends IFileManager<U>, U extends Exter
     applyMethod(instance: JimpInstance, name: string, ...args: unknown[]): unknown[];
     readonly prototype: IJimpImage<T, U, V>;
     new(module?: V, ...args: unknown[]): IJimpImage<T, U, V>;
+}
+
+export interface WebpMuxFrame extends Dimension, Point {
+    delay: number;
+}
+
+export interface WebpMuxImage extends Readonly<Dimension> {
+    readonly anim: { loops: number; bgColor: [number, number, number, number] };
+    initLib(): Promise<void>;
+    load(value: Bufferable): Promise<void>;
+    demux(options: { path?: string; prefix?: string; buffers?: boolean }): Promise<void>;
+    getImageData(): Promise<Uint8Array>;
+    getFrameData(frame: number): Promise<Uint8Array>;
+    setFrameData(frame: number, source: Buffer, options: Dimension & { preset?: string; quality?: number; exact?: boolean; lossless?: number; method?: number }): Promise<void>;
+    save(path: string, options: Dimension & { bgColor?: number[] }): Promise<void>;
+    get hasAnim(): boolean;
+    get frames(): WebpMuxFrame[];
+}
+
+export interface WebpMux {
+    Image: new() => WebpMuxImage;
 }

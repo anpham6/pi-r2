@@ -6,9 +6,7 @@ import type { CommandData, CropData, QualityData, ResizeData, RotateData, Transf
 import type { LogTime } from '@e-mc/types/lib/logger';
 import type { ExecAction } from '@e-mc/types/lib/module';
 
-import type { WebpMux } from '@e-mc/image/types';
-
-import type { IJimpHandler, JimpImageConstructor, JimpMessage, JimpSettings, ResultCallback } from './types';
+import type { IJimpHandler, JimpImageConstructor, JimpMessage, JimpSettings, ResultCallback, WebpMux } from './types';
 
 import type { JPEGOptions, JimpInstance, ResizeOptions, ResizeStrategy } from 'jimp';
 import type { DecodeJpegOptions } from "@jimp/js-jpeg";
