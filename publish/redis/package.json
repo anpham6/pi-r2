@@ -22,6 +22,6 @@
   "dependencies": {
     "@e-mc/db": "^0.12.7",
     "@e-mc/types": "^0.12.7",
-    "redis": "^5.8.2"
+    "redis": "^5.8.3"
   }
 }

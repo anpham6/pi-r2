@@ -85,7 +85,7 @@
     "@types/imagemin-optipng": "^5.2.4",
     "@types/imagemin-pngquant": "^7.0.0",
     "@types/imagemin-webp": "^7.0.3",
-    "@types/node": "^24.5.2",
+    "@types/node": "^24.6.2",
     "@types/pngjs": "*",
     "@types/uglify-js": "^3.17.5",
     "eslint": "9.35.0",
@@ -95,13 +95,13 @@
     "ibm-cos-sdk": "^1.14.1",
     "jimp": "^1.6.0",
     "minio": "^8.0.6",
-    "redis": "^5.8.2",
-    "rollup": "^4.52.0",
+    "redis": "^5.8.3",
+    "rollup": "^4.52.4",
     "source-map-js": "*",
     "sqd-admin": "^0.18.0",
     "sqd-build": "^0.7.1",
     "sqd-eslint": "0.11.2",
-    "svgo": "^3.3.2",
-    "typescript": "5.9.2"
+    "svgo": "^4.0.0",
+    "typescript": "5.9.3"
   }
 }

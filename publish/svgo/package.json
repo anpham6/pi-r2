@@ -21,6 +21,6 @@
   "dependencies": {
     "@e-mc/document": "^0.12.7",
     "@e-mc/types": "^0.12.7",
-    "svgo": "^3.3.2"
+    "svgo": "^4.0.0"
   }
 }

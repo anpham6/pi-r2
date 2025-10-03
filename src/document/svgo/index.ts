@@ -1,19 +1,18 @@
 import type { ITransformSeries } from '@e-mc/types/lib/document';
 
-import type { Plugin } from 'svgo/lib/types';
-
 import type * as svgo from 'svgo';
 
 import { ERR_MESSAGE } from '@e-mc/types/constant';
 
 import Document = require('@e-mc/document');
-import Parse = require('@e-mc/document/parse/dom');
+
+import { DomWriter } from '@e-mc/document/parse/dom';
 
 import { isPlainObject, isString } from '@e-mc/types';
 
 interface CustomPlugin {
     name: string;
-    fn?: Plugin<void> | string;
+    fn?: svgo.Plugin<void> | string;
 }
 
 function transform(context: typeof svgo, value: string, options: ITransformSeries<svgo.Config>) {
@@ -26,7 +25,7 @@ function transform(context: typeof svgo, value: string, options: ITransformSerie
             if (isPlainObject<CustomPlugin>(item) && isString(item.fn)) {
                 const fn = Document.parseFunction(item.fn, { absolute: true, external: true });
                 if (fn) {
-                    item.fn = fn as Plugin<void>;
+                    item.fn = fn as svgo.Plugin<void>;
                 }
                 else {
                     plugins.splice(i--, 1);
@@ -37,12 +36,12 @@ function transform(context: typeof svgo, value: string, options: ITransformSerie
     }
     delete baseConfig.path;
     if ((options.metadata as AnyObject).__fromhtml__ || /<html[\s>]/i.test(value) && /<\/html\s*>/i.test(value)) {
-        const { element } = Parse.DomWriter.getDocumentElement(value);
+        const { element } = DomWriter.getDocumentElement(value);
         if (element) {
             const segments: string[] = [];
             const svg: string[] = [];
             let lastIndex = 0;
-            for (const item of Parse.DomWriter.getElementsByTagName('svg', element, true)) {
+            for (const item of DomWriter.getElementsByTagName('svg', element, true)) {
                 segments.push(value.substring(lastIndex, item.startIndex!));
                 svg.push(value.substring(item.startIndex!, lastIndex = item.endIndex! + 1));
             }
