@@ -17,7 +17,7 @@ import { readableAsBuffer } from '@e-mc/cloud/util';
 import client = require('../client');
 
 function download(this: IModule, credential: MinIOStorageCredential, service: string): DownloadCallback {
-    const minio = client.createStorageClient.call(this, credential);
+    const minio = client.createStorageClient(credential);
     return (data: DownloadData<RemoveOptions>, callback) => {
         const { bucket: bucketName, download: target } = data;
         const filename = target.keyname || target.filename;

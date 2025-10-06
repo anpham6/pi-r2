@@ -67,7 +67,7 @@ export function setStorageCredential(credential: IBMStorageCredential) {
     credential.signatureVersion = 'iam';
 }
 
-export function createDatabaseClient(this: IModule, credential: IBMDatabaseCredential) {
+export function createDatabaseClient(credential: IBMDatabaseCredential) {
     const { url, username, password, apikey, authType, authUrl } = credential;
     let authenticator: AuthenticatorInterface | undefined;
     if (apikey) {
@@ -166,7 +166,7 @@ export async function executeBatchQuery(this: ICloud, credential: IBMDatabaseCre
     const caching = length > 0 && this.hasCache(batch[0].service, sessionKey);
     const cacheValue = { value: this.valueOfKey(credential, 'cache'), sessionKey } as CacheOptions;
     let client: cloudant_v1 | undefined;
-    const createClient = () => client ||= createDatabaseClient.call(this, credential);
+    const createClient = () => client ||= createDatabaseClient(credential);
     for (let i = 0; i < length; ++i) {
         const item = batch[i];
         const { service, name, table, id: docId, query, partitionKey, limit = 0, update, ignoreCache } = item;

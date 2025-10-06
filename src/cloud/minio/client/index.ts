@@ -80,7 +80,7 @@ export function validateStorage(credential: MinIOStorageCredential, data?: Cloud
     return false;
 }
 
-export function createStorageClient(this: IModule, credential: MinIOStorageCredential) {
+export function createStorageClient(credential: MinIOStorageCredential) {
     credential.endPoint ||= 'localhost';
     return new minio.Client(credential);
 }
@@ -90,7 +90,7 @@ export async function createBucket(this: IModule, credential: MinIOStorageCreden
 }
 
 export async function createBucketV2(this: IModule, credential: MinIOStorageCredential, bucketName: string, policy?: MinIOPolicyType | S3PolicyType, options?: CreateBucketV2Options) {
-    const client = createStorageClient.call(this, credential);
+    const client = createStorageClient(credential);
     const errorBucket = (err: unknown) => {
         this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.CREATE_BUCKET, bucketName], err, Cloud.optionsLogMessage('FAIL'));
     };
@@ -175,7 +175,7 @@ export async function setBucketPolicy(this: IModule, credential: MinIOStorageCre
         this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.POLICY_INVALID, bucketName], null, Cloud.optionsLogMessage('WARN'));
         return false;
     }
-    const client = createStorageClient.call(this, credential);
+    const client = createStorageClient(credential);
     return client.bucketExists(bucketName)
         .then(async exists => {
             if (exists) {
@@ -209,7 +209,7 @@ export async function setBucketTagging(this: IModule, credential: MinIOStorageCr
     if (!isPlainObject(tags)) {
         return false;
     }
-    const client = createStorageClient.call(this, credential);
+    const client = createStorageClient(credential);
     const deleting = Object.keys(tags).length === 0;
     const command = () => {
         this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [deleting ? VAL_CLOUD.DELETE_TAG : VAL_CLOUD.CREATE_TAG, bucketName], null, Cloud.optionsLogMessage('COMMAND'));
@@ -240,7 +240,7 @@ export async function deleteObjects(this: IModule, credential: MinIOStorageCrede
 }
 
 export async function deleteObjectsV2(this: IModule, credential: MinIOStorageCredential, bucketName: string, recursive = true) {
-    const client = createStorageClient.call(this, credential);
+    const client = createStorageClient(credential);
     return new Promise<void>((resolve, reject) => {
         client.bucketExists(bucketName)
             .then(exists => {
