@@ -30,7 +30,7 @@ import { WorkerChannel, WorkerGroup } from '@e-mc/core';
 
 const Image = require('@e-mc/image') as JimpImageConstructor<IFileManager>;
 
-import { ERR_CODE, createAbortError, errorMessage, errorValue, isPlainObject, isString, parseExpires, sanitizeCmd } from '@e-mc/types';
+import { ERR_CODE, createAbortError, errorMessage, errorValue, isErrorCode, isPlainObject, isString, parseExpires, sanitizeCmd } from '@e-mc/types';
 
 import util = require('./util');
 
@@ -992,7 +992,7 @@ class Jimp extends Image {
                                 if (!err && result) {
                                     finalize(result);
                                 }
-                                else if (Image.isErrorCode(err, ERR_CODE.MODULE_NOT_FOUND)) {
+                                else if (isErrorCode(err, ERR_CODE.MODULE_NOT_FOUND)) {
                                     resolve();
                                 }
                                 else {

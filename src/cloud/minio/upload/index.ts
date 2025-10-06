@@ -112,7 +112,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
             }
             while (exists && ++i);
             if (i > 0) {
-                this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.RENAME_FILE, current], filename, { ...Cloud.LOG_CLOUD_WARN });
+                this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.RENAME_FILE, current], filename, Cloud.optionsLogMessage('WARN'));
             }
         }
         const Key = [filename];
@@ -178,20 +178,20 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
             minio.putObject(bucketName, objectName, Stream.length > 0 ? Stream[i] : Body[i], Stream.length > 0 ? undefined : Body[i].byteLength, params)
                 .then(() => {
                     const url = Cloud.joinPath(endpoint || Cloud.joinPath(MINIO.SERVER, bucketName), objectName);
-                    this.formatMessage(LOG_TYPE.CLOUD, service, VAL_CLOUD.UPLOAD_FILE, url, { ...Cloud.LOG_CLOUD_UPLOAD });
+                    this.formatMessage(LOG_TYPE.CLOUD, service, VAL_CLOUD.UPLOAD_FILE, url, Cloud.optionsLogMessage('UPLOAD'));
                     if (first) {
                         let length = -1;
                         if (isPlainObject(tags) && (length = Object.keys(tags).length) > 0) {
                             minio.setObjectTagging(bucketName, objectName, tags)
                                 .then(() => {
-                                    this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.CREATE_TAG, bucketName], objectName, { ...Cloud.LOG_CLOUD_COMMAND });
+                                    this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.CREATE_TAG, bucketName], objectName, Cloud.optionsLogMessage('COMMAND'));
                                 })
                                 .catch(addLog);
                         }
                         else if (tags === false || length === 0) {
                             minio.removeObjectTagging(bucketName, objectName, {} as { versionId: string })
                                 .then(() => {
-                                    this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.DELETE_TAG, bucketName], objectName, { ...Cloud.LOG_CLOUD_COMMAND });
+                                    this.formatMessage(LOG_TYPE.CLOUD, service, [VAL_CLOUD.DELETE_TAG, bucketName], objectName, Cloud.optionsLogMessage('COMMAND'));
                                 })
                                 .catch(addLog);
                         }

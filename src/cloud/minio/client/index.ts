@@ -92,7 +92,7 @@ export async function createBucket(this: IModule, credential: MinIOStorageCreden
 export async function createBucketV2(this: IModule, credential: MinIOStorageCredential, bucketName: string, policy?: MinIOPolicyType | S3PolicyType, options?: CreateBucketV2Options) {
     const client = createStorageClient.call(this, credential);
     const errorBucket = (err: unknown) => {
-        this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.CREATE_BUCKET, bucketName], err, { ...Cloud.LOG_CLOUD_FAIL });
+        this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.CREATE_BUCKET, bucketName], err, Cloud.optionsLogMessage('FAIL'));
     };
     const finalizeBucket = () => {
         if (policy) {
@@ -101,10 +101,10 @@ export async function createBucketV2(this: IModule, credential: MinIOStorageCred
         if (isPlainObject<CreateBucketV2Options>(options)) {
             const { tags, versioningConfig, encryptionConfig, replicationConfig } = options;
             const commandMessage = (feature: string) => {
-                this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [VAL_CLOUD.CONFIGURE_BUCKET + ` (${feature})`, bucketName], null, { ...Cloud.LOG_CLOUD_COMMAND });
+                this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [VAL_CLOUD.CONFIGURE_BUCKET + ` (${feature})`, bucketName], null, Cloud.optionsLogMessage('COMMAND'));
             };
             const errorMessage = (feature: string, err: unknown) => {
-                this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.CONFIGURE_BUCKET + ` (${feature})`, bucketName], err, { ...Cloud.LOG_CLOUD_FAIL, fatal: false });
+                this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.CONFIGURE_BUCKET + ` (${feature})`, bucketName], err, Cloud.optionsLogMessage('FAIL', { fatal: false }));
             };
             if (isPlainObject<TagList>(tags)) {
                 client.setBucketTagging(bucketName, tags)
@@ -149,7 +149,7 @@ export async function createBucketV2(this: IModule, credential: MinIOStorageCred
             if (!exists) {
                 return client.makeBucket(bucketName, credential.region || MINIO.REGION)
                     .then(() => {
-                        this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [VAL_CLOUD.CREATE_BUCKET, bucketName], '', { ...Cloud.LOG_CLOUD_COMMAND });
+                        this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [VAL_CLOUD.CREATE_BUCKET, bucketName], '', Cloud.optionsLogMessage('COMMAND'));
                         finalizeBucket();
                         return true;
                     })
@@ -172,7 +172,7 @@ export async function setBucketPolicy(this: IModule, credential: MinIOStorageCre
         bucketPolicy = JSON.stringify(bucketPolicy);
     }
     if (!isString(bucketPolicy)) {
-        this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.POLICY_INVALID, bucketName], null, { ...Cloud.LOG_CLOUD_WARN });
+        this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.POLICY_INVALID, bucketName], null, Cloud.optionsLogMessage('WARN'));
         return false;
     }
     const client = createStorageClient.call(this, credential);
@@ -189,18 +189,18 @@ export async function setBucketPolicy(this: IModule, credential: MinIOStorageCre
                 }
                 return client.setBucketPolicy(bucketName, bucketPolicy as string)
                     .then(() => {
-                        this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [VAL_CLOUD.POLICY_BUCKET, bucketName], null, { ...Cloud.LOG_CLOUD_COMMAND });
+                        this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [VAL_CLOUD.POLICY_BUCKET, bucketName], null, Cloud.optionsLogMessage('COMMAND'));
                         return true;
                     })
                     .catch((err: unknown) => {
-                        this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.POLICY_BUCKET, bucketName], err, { ...Cloud.LOG_CLOUD_FAIL, fatal: false });
+                        this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.POLICY_BUCKET, bucketName], err, Cloud.optionsLogMessage('FAIL', { fatal: false }));
                         return false;
                     });
             }
             return false;
         })
         .catch((err: unknown) => {
-            this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_MESSAGE.UNKNOWN, bucketName], err, { ...Cloud.LOG_CLOUD_FAIL, fatal: false });
+            this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_MESSAGE.UNKNOWN, bucketName], err, Cloud.optionsLogMessage('FAIL', { fatal: false }));
             return false;
         });
 }
@@ -212,11 +212,11 @@ export async function setBucketTagging(this: IModule, credential: MinIOStorageCr
     const client = createStorageClient.call(this, credential);
     const deleting = Object.keys(tags).length === 0;
     const command = () => {
-        this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [deleting ? VAL_CLOUD.DELETE_TAG : VAL_CLOUD.CREATE_TAG, bucketName], null, { ...Cloud.LOG_CLOUD_COMMAND });
+        this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [deleting ? VAL_CLOUD.DELETE_TAG : VAL_CLOUD.CREATE_TAG, bucketName], null, Cloud.optionsLogMessage('COMMAND'));
         return true;
     };
     const error = (err: unknown) => {
-        this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.TAGGING_BUCKET, bucketName], err, { ...Cloud.LOG_CLOUD_FAIL, fatal: false });
+        this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_CLOUD.TAGGING_BUCKET, bucketName], err, Cloud.optionsLogMessage('FAIL', { fatal: false }));
         return false;
     };
     return client.bucketExists(bucketName)
@@ -230,7 +230,7 @@ export async function setBucketTagging(this: IModule, credential: MinIOStorageCr
             return false;
         })
         .catch((err: unknown) => {
-            this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_MESSAGE.UNKNOWN, bucketName], err, { ...Cloud.LOG_CLOUD_FAIL, fatal: false });
+            this.formatFail(LOG_TYPE.CLOUD, MINIO.SERVICE, [ERR_MESSAGE.UNKNOWN, bucketName], err, Cloud.optionsLogMessage('FAIL', { fatal: false }));
             return false;
         });
 }
@@ -253,7 +253,7 @@ export async function deleteObjectsV2(this: IModule, credential: MinIOStorageCre
                     stream.on('end', () => {
                         client.removeObjects(bucketName, items.map(item => item.name!))
                             .then(() => {
-                                this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [VAL_CLOUD.EMPTY_BUCKET + ` (${items.length} files)`, bucketName], null, { ...Cloud.LOG_CLOUD_COMMAND });
+                                this.formatMessage(LOG_TYPE.CLOUD, MINIO.SERVICE, [VAL_CLOUD.EMPTY_BUCKET + ` (${items.length} files)`, bucketName], null, Cloud.optionsLogMessage('COMMAND'));
                                 resolve();
                             })
                             .catch(reject);

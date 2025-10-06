@@ -34,10 +34,10 @@ function download(this: IModule, credential: MinIOStorageCredential, service: st
                         const location = Cloud.joinPath(bucketName, filename);
                         minio.removeObject(bucketName, filename, isPlainObject(deleteObject) ? deleteObject : { versionId: target.versionId })
                             .then(() => {
-                                this.formatMessage(LOG_TYPE.CLOUD, service, VAL_CLOUD.DELETE_FILE, location, { ...Cloud.LOG_CLOUD_DELETE });
+                                this.formatMessage(LOG_TYPE.CLOUD, service, VAL_CLOUD.DELETE_FILE, location, Cloud.optionsLogMessage('DELETE'));
                             })
                             .catch((err: unknown) => {
-                                this.formatFail(LOG_TYPE.CLOUD, service, [ERR_CLOUD.DELETE_FAIL, location], err, { ...Cloud.LOG_CLOUD_FAIL, fatal: !!target.active });
+                                this.formatFail(LOG_TYPE.CLOUD, service, [ERR_CLOUD.DELETE_FAIL, location], err, Cloud.optionsLogMessage('FAIL', { fatal: !!target.active }));
                             });
                     }
                 })
