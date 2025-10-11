@@ -30,7 +30,7 @@ import { WorkerChannel, WorkerGroup } from '@e-mc/core';
 
 const Image = require('@e-mc/image') as JimpImageConstructor<IFileManager>;
 
-import { ERR_CODE, createAbortError, errorMessage, errorValue, isErrorCode, isPlainObject, isString, parseExpires, sanitizeCmd } from '@e-mc/types';
+import { ERR_CODE, createAbortError, errorMessage, errorValue, getTempDir, isErrorCode, isPlainObject, isString, parseExpires, sanitizeCmd } from '@e-mc/types';
 
 import util = require('./util');
 
@@ -253,13 +253,13 @@ function getImageCache(instance: Jimp, tempKey: string): [Buffer | null, string?
         removeFile(tempFile);
         delete stored[tempKey];
     }
-    TEMP_DIR ||= instance.getTempDir({ moduleDir: true, increment: 5 });
+    setTempDir(instance);
     return [null, TEMP_DIR ? path.join(TEMP_DIR, crypto.randomUUID()) : ''];
 }
 
 function getCacheData(instance: Jimp) {
     if (!CACHE_INIT) {
-        TEMP_DIR = instance.getTempDir({ moduleDir: true, increment: 5 });
+        setTempDir(instance);
         const settings = instance.settings.jimp ||= {};
         const expires = parseExpires(settings.cache_expires || 0);
         if (settings.worker) {
@@ -325,8 +325,8 @@ function formatMessage(instance: Jimp, value: string, startTime: LogTime | undef
 }
 
 function getTempPath(instance: Jimp, ext: string) {
-    const tempDir = TEMP_DIR || instance.getTempDir({ moduleDir: true, createDir: true }) || instance.getTempDir();
-    return path.join(tempDir, crypto.randomUUID() + '.' + ext);
+    setTempDir(instance);
+    return path.join(TEMP_DIR, crypto.randomUUID() + '.' + ext);
 }
 
 function rotateAnim(cmd: CommandData) {
@@ -346,6 +346,10 @@ function removeFile(pathname: string) {
 
 function errorParameters(alias: string, value: unknown) {
     throw errorMessage(alias, ERR_MESSAGE.PARAMETERS, JSON.stringify(value));
+}
+
+function setTempDir(instance: Jimp) {
+    TEMP_DIR ||= instance.getTempDir({ moduleDir: true }) || getTempDir(true, STRINGS.MODULE_NAME);
 }
 
 const hasTransform = (cmd: CommandData) => !!(cmd.rotate || cmd.resize || cmd.crop || cmd.method || typeof cmd.opacity === 'number' && cmd.opacity >= 0 && cmd.opacity < 1);
