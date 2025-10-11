@@ -617,26 +617,29 @@ class Jimp extends Image {
     static [kJimp] = true;
 
     static override async transform<T extends TransformOptions extends infer U ? U extends { tempFile: infer V } ? V extends true ? string : Buffer | null : never : never>(file: Bufferable, command: string, options: TransformOptions = {}): Promise<T> {
-        const [outputType, saveAs, outputAs] = util.parseFormat(command = command.trim(), options.mimeType);
-        if (!outputType) {
-            return emptyResult(options);
-        }
         const instance = new Jimp(options.module);
         let buffer: Buffer | null = null;
         if (Buffer.isBuffer(file)) {
-            const tempDir = TEMP_DIR || instance.getTempDir();
-            if (!this.createDir(tempDir)) {
-                return emptyResult(options);
-            }
             try {
-                const { ext } = await this.resolveMime(file) || { ext: 'unknown' };
+                setTempDir(instance);
+                const { mime, ext } = await this.resolveMime(file) || { ext: 'unknown' };
                 buffer = file;
-                fs.writeFileSync(file = path.join(tempDir, crypto.randomUUID() + '.' + ext), buffer);
+                fs.writeFileSync(file = path.join(TEMP_DIR, crypto.randomUUID() + '.' + ext), buffer);
+                if (mime) {
+                    options.mimeType = mime;
+                }
             }
             catch {
                 return emptyResult(options);
             }
             options.cache = false;
+        }
+        else {
+            options.mimeType ||= Image.lookupMime(file);
+        }
+        const [outputType, saveAs, outputAs] = util.parseFormat(command = command.trim(), options.mimeType);
+        if (!outputType) {
+            return emptyResult(options);
         }
         const filename = path.basename(file);
         const broadcastId = options.broadcastId;
@@ -678,9 +681,7 @@ class Jimp extends Image {
                 }
                 return result as T;
             })
-            .catch(() => {
-                return emptyResult<T>(options);
-            })
+            .catch(() => emptyResult<T>(options))
             .finally(() => {
                 if (buffer && !options.cache) {
                     removeFile(file);
