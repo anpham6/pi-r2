@@ -254,7 +254,7 @@ function getImageCache(instance: Jimp, tempKey: string): [Buffer | null, string?
         delete stored[tempKey];
     }
     setTempDir(instance);
-    return [null, TEMP_DIR ? path.join(TEMP_DIR, crypto.randomUUID()) : ''];
+    return [null, path.join(TEMP_DIR, crypto.randomUUID())];
 }
 
 function getCacheData(instance: Jimp) {
@@ -349,7 +349,7 @@ function errorParameters(alias: string, value: unknown) {
 }
 
 function setTempDir(instance: Jimp) {
-    TEMP_DIR ||= instance.getTempDir({ moduleDir: true }) || getTempDir(true, STRINGS.MODULE_NAME);
+    TEMP_DIR ||= instance.getTempDir({ moduleDir: true, createDir: true }) || getTempDir(true, STRINGS.MODULE_NAME);
 }
 
 const hasTransform = (cmd: CommandData) => !!(cmd.rotate || cmd.resize || cmd.crop || cmd.method || typeof cmd.opacity === 'number' && cmd.opacity >= 0 && cmd.opacity < 1);
