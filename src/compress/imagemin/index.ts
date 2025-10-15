@@ -8,7 +8,6 @@ import { ERR_MESSAGE } from '@e-mc/types/constant';
 import jpegtran from 'imagemin-jpegtran';
 import mozjpeg from 'imagemin-mozjpeg';
 import pngquant from 'imagemin-pngquant';
-import optipng from 'imagemin-optipng';
 import webp from 'imagemin-webp';
 import gifsicle from 'imagemin-gifsicle';
 // @ts-expect-error
@@ -23,7 +22,6 @@ interface ImageminModule extends CompressModule {
         mozjpeg?: AnyObject;
         jpegtran?: AnyObject;
         pngquant?: AnyObject;
-        optipng?: AnyObject;
         webp?: AnyObject;
         gifsicle?: AnyObject;
         svgo?: AnyObject;
@@ -39,8 +37,6 @@ const PLUGIN_MAP: ObjectMap<FunctionType> = Object.freeze({
     'imagemin-mozjpeg': mozjpeg,
     'pngquant': pngquant,
     'imagemin-pngquant': pngquant,
-    'optipng': optipng,
-    'imagemin-optipng': optipng,
     'webp': webp,
     'imagemin-webp': webp,
     'gifsicle': gifsicle,
@@ -56,9 +52,6 @@ export default function compress(this: ICompress<ImageminModule> | undefined, op
         switch (mimeType) {
             case 'image/jpeg':
                 plugin = settings.jpegtran ? 'jpegtran' : 'mozjpeg';
-                break;
-            case 'image/png':
-                plugin = settings.optipng ? 'optipng' : 'pngquant';
                 break;
         }
     }

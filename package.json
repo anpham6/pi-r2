@@ -78,7 +78,6 @@
     "@types/imagemin-gifsicle": "^7.0.4",
     "@types/imagemin-jpegtran": "^5.0.4",
     "@types/imagemin-mozjpeg": "^8.0.4",
-    "@types/imagemin-optipng": "^5.2.4",
     "@types/imagemin-pngquant": "^7.0.0",
     "@types/imagemin-webp": "^7.0.3",
     "@types/node": "^24.7.1",
