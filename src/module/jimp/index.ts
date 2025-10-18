@@ -113,7 +113,7 @@ type MethodName = keyof typeof METHOD_ALIAS;
     const fontName: string[] = [];
     for (const font in fonts) {
         fontName.push(font);
-        tasks.push(jimp.loadFont(font));
+        tasks.push(jimp.loadFont(fonts[font as keyof typeof jf]));
     }
     void Promise.allSettled(tasks)
         .then(result => {
