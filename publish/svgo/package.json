@@ -1,6 +1,6 @@
 {
   "name": "@pi-r2/svgo",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "SVGO transform function for E-mc.",
   "main": "index.js",
   "publishConfig": {
@@ -19,8 +19,8 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/document": "^0.12.8",
-    "@e-mc/types": "^0.12.8",
+    "@e-mc/document": "^0.13.0",
+    "@e-mc/types": "^0.13.0",
     "svgo": "^4.0.0"
   }
 }

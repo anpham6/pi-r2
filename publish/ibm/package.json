@@ -1,6 +1,6 @@
 {
   "name": "@pi-r2/ibm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "IBM cloud functions for E-mc.",
   "main": "client/index.js",
   "publishConfig": {
@@ -19,10 +19,10 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/cloud": "^0.12.8",
-    "@e-mc/module": "^0.12.8",
-    "@e-mc/types": "^0.12.8",
-    "@pi-r/aws": "^0.10.3",
+    "@e-mc/cloud": "^0.13.0",
+    "@e-mc/module": "^0.13.0",
+    "@e-mc/types": "^0.13.0",
+    "@pi-r/aws": "^0.11.0",
     "@ibm-cloud/cloudant": "^0.12.10",
     "ibm-cloud-sdk-core": "^5.4.3",
     "ibm-cos-sdk": "^1.14.1"
