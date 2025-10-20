@@ -410,7 +410,7 @@ class JimpHandler implements IJimpHandler<IFileManager> {
                     if (alias === 'composite') {
                         const [src, x, y, opts] = args;
                         if (isString(src) && typeof x === 'number' && typeof y === 'number') {
-                            this.handler.composite(await jimp.Jimp.read(src), x, y, opts as undefined);
+                            this.handler.composite(await jimp.Jimp.read(src), x, y, opts as PlainObject);
                         }
                         else {
                             errorParameters(alias, args);
@@ -878,7 +878,7 @@ class Jimp extends Image {
             }
             if (method) {
                 const values = method.map(item => [getMethodName(item[0]) || item[0], item[1]] as [string, unknown[]?]);
-                if (values.find(item => !item[0] || item[0] === 'composite')) {
+                if (values.find(item => !item[0])) {
                     return null;
                 }
                 command.method = values;

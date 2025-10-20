@@ -6,9 +6,13 @@ import type { JPEGOptions, JimpInstance } from 'jimp';
 import { parentPort, workerData } from 'node:worker_threads';
 import { Jimp } from 'jimp';
 
+import { ERR_MESSAGE } from '@e-mc/types/constant';
+
 import Image = require('@e-mc/image');
 
-import jimp = require('@pi-r/jimp');
+import { errorMessage, isString } from '@e-mc/types';
+
+import JimpApp = require('@pi-r/jimp');
 
 const PORT: MessagePort = workerData[0];
 
@@ -19,17 +23,28 @@ parentPort!.on('message', (value: JimpMessage<JPEGOptions>) => {
             const { method, resize, crop, rotate, opacity = -1 } = commandData;
             if (method) {
                 for (const [name, args = []] of method) {
-                    jimp.applyMethod(img as JimpInstance, name, ...args);
+                    if (name === 'composite') {
+                        const [src, x, y, opts] = args;
+                        if (isString(src) && typeof x === 'number' && typeof y === 'number') {
+                            img.composite(await Jimp.read(src), x, y, opts as PlainObject);
+                        }
+                        else {
+                            throw errorMessage(name, ERR_MESSAGE.PARAMETERS, JSON.stringify(value));
+                        }
+                    }
+                    else {
+                        JimpApp.applyMethod(img as JimpInstance, name, ...args);
+                    }
                 }
             }
             if (resize) {
-                jimp.applyResize(img as JimpInstance, resize);
+                JimpApp.applyResize(img as JimpInstance, resize);
             }
             if (crop) {
-                jimp.applyCrop(img as JimpInstance, crop);
+                JimpApp.applyCrop(img as JimpInstance, crop);
             }
             if (rotate) {
-                jimp.applyRotate(img as JimpInstance, rotate);
+                JimpApp.applyRotate(img as JimpInstance, rotate);
             }
             if (opacity >= 0) {
                 img.opacity(opacity);
