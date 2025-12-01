@@ -20,8 +20,8 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r#readme",
   "dependencies": {
-    "@e-mc/db": "^0.13.0",
-    "@e-mc/types": "^0.13.0",
-    "redis": "^5.8.3"
+    "@e-mc/db": "^0.13.4",
+    "@e-mc/types": "^0.13.4",
+    "redis": "^5.10.0"
   }
 }
