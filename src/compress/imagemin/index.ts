@@ -1,4 +1,4 @@
-import type { CompressFormat } from '@e-mc/types/lib/squared';
+import type { MimeTypeAction } from '@e-mc/types/lib/squared';
 
 import type { ICompress } from '@e-mc/types/lib';
 import type { CompressModule } from '@e-mc/types/lib/settings';
@@ -45,9 +45,9 @@ const PLUGIN_MAP: ObjectMap<FunctionType> = Object.freeze({
     'imagemin-svgo': svgo
 });
 
-export default function compress(this: ICompress<ImageminModule> | undefined, options: AnyObject | undefined, metadata: CompressFormat["metadata"] & { package?: string } = {}) {
-    let { package: plugin, mimeType } = metadata,
-        settings: ImageminModule["imagemin"] | undefined;
+export default function compress(this: ICompress<ImageminModule> | undefined, options: AnyObject | undefined, metadata: PlainObject = {}) {
+    let { package: plugin, mimeType } = metadata as MimeTypeAction & { package?: string },
+        settings: ImageminModule["imagemin"];
     if (isPlainObject<CompressModule>(this?.module) && (settings = this.module.imagemin) && !plugin) {
         switch (mimeType) {
             case 'image/jpeg':
