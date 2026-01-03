@@ -157,7 +157,7 @@ export async function copyObject(this: IModule, credential: IBMStorageCredential
 }
 
 export async function executeQuery(this: ICloud, credential: IBMDatabaseCredential, data: IBMDatabaseQuery, sessionKey?: string) {
-    return (await executeBatchQuery.call(this, credential, [data], sessionKey))[0] || [];
+    return (await executeBatchQuery.call(this, credential, [data], sessionKey)).at(0) || [];
 }
 
 export async function executeBatchQuery(this: ICloud, credential: IBMDatabaseCredential, batch: IBMDatabaseQuery[], sessionKey?: string) {

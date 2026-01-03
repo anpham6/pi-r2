@@ -300,12 +300,8 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                                 return;
                             }
                             const has = (n: unknown): n is number => typeof n === 'number' && n > 0;
-                            const failKey = () => {
-                                failed(errorMessage(f, ERR_DB.KEY, Db.asString(k) || ERR_MESSAGE.UNKNOWN));
-                            };
-                            const failValue = () => {
-                                failed(errorMessage(f, ERR_DB.VALUE, Db.asString(v) || ERR_MESSAGE.UNKNOWN));
-                            };
+                            const failKey = () => failed(errorMessage(f, ERR_DB.KEY, Db.asString(k) || ERR_MESSAGE.UNKNOWN));
+                            const failValue = () => failed(errorMessage(f, ERR_DB.VALUE, Db.asString(v) || ERR_MESSAGE.UNKNOWN));
                             if (isPlainObject<CommandOptions>(setOptions.command)) {
                                 client = client.withCommandOptions(setOptions.command);
                             }
@@ -408,7 +404,7 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                             else if (typeof k === 'string' || Buffer.isBuffer(k)) {
                                 ({ EX, PX, EXAT, PXAT, KEEPTTL } = target as RedisSetValue);
                                 const field = (target as RedisSetValue).field;
-                                if (field === undefined && field === null) {
+                                if (field == null) { // eslint-disable-line eqeqeq
                                     if (a(v)) {
                                         const flags = setOptions.set || {};
                                         if (NX) {
@@ -481,7 +477,7 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                             }
                             if (pending) {
                                 pending.then(async code => {
-                                    if (code === undefined || code === null || code !== -Infinity && isString(code) && code !== 'OK' || typeof code === 'number' && code <= codeMin || Array.isArray(code) && code.every(resp => resp === null || typeof resp === 'number' && resp <= codeMin)) {
+                                    if (code == null || code !== -Infinity && isString(code) && code !== 'OK' || typeof code === 'number' && code <= codeMin || Array.isArray(code) && code.every(resp => resp === null || typeof resp === 'number' && resp <= codeMin)) { // eslint-disable-line eqeqeq
                                         failValue();
                                         return;
                                     }
@@ -649,7 +645,7 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                     }
                     rows = (targetObject ? targetObject(item, data) : data) as QueryResult;
                 }
-                if (rows === undefined) {
+                if (rows == null) { // eslint-disable-line eqeqeq
                     throw errorMessage(source, ERR_DB.QUERY);
                 }
                 this.add(item, DB_TRANSACTION.COMMIT);
