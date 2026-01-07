@@ -1,6 +1,6 @@
 {
   "name": "@pi-r/imagemin",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "type": "module",
   "description": "imagemin transform function for E-mc.",
   "main": "index.js",
