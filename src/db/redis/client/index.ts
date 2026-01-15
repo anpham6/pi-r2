@@ -404,7 +404,7 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                             else if (typeof k === 'string' || Buffer.isBuffer(k)) {
                                 ({ EX, PX, EXAT, PXAT, KEEPTTL } = target as RedisSetValue);
                                 const field = (target as RedisSetValue).field;
-                                if (field == null) { // eslint-disable-line eqeqeq
+                                if (field == null) {
                                     if (a(v)) {
                                         const flags = setOptions.set || {};
                                         if (NX) {
@@ -477,7 +477,7 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                             }
                             if (pending) {
                                 pending.then(async code => {
-                                    if (code == null || code !== -Infinity && isString(code) && code !== 'OK' || typeof code === 'number' && code <= codeMin || Array.isArray(code) && code.every(resp => resp === null || typeof resp === 'number' && resp <= codeMin)) { // eslint-disable-line eqeqeq
+                                    if (code == null || code !== -Infinity && isString(code) && code !== 'OK' || typeof code === 'number' && code <= codeMin || Array.isArray(code) && code.every(resp => resp === null || typeof resp === 'number' && resp <= codeMin)) {
                                         failValue();
                                         return;
                                     }
@@ -645,7 +645,7 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                     }
                     rows = (targetObject ? targetObject(item, data) : data) as QueryResult;
                 }
-                if (rows == null) { // eslint-disable-line eqeqeq
+                if (rows == null) {
                     throw errorMessage(source, ERR_DB.QUERY);
                 }
                 this.add(item, DB_TRANSACTION.COMMIT);
