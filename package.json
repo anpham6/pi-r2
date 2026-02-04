@@ -43,7 +43,7 @@
     "clean:prod": "npm run clean && npx admin remove -E js -s publish"
   },
   "engines": {
-    "node": ">=18.20.5"
+    "node": ">=18.20"
   },
   "repository": {
     "type": "git",

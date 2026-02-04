@@ -1,6 +1,6 @@
 # Pi-r2 0.3
 
-* NodeJS 18.20.5 LTS
+* NodeJS 18.20 LTS
 * ES2022
 
 > [!CAUTION]
