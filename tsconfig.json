@@ -2,10 +2,9 @@
   "compilerOptions": {
     "target": "es2022",
     "module": "preserve",
-    "baseUrl": ".",
     "paths": {
-      "@pi-r/jimp": ["src/module/jimp"],
-      "@pi-r/jimp/*": ["src/module/jimp/*"]
+      "@pi-r/jimp": ["./src/module/jimp"],
+      "@pi-r/jimp/*": ["./src/module/jimp/*"]
     },
     "newLine": "lf",
     "libReplacement": false,
