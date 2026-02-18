@@ -11,7 +11,8 @@ import type { IJimpHandler, JimpImageConstructor, JimpMessage, JimpSettings, Res
 import type { JPEGOptions, JimpInstance, ResizeOptions, ResizeStrategy } from 'jimp';
 import type { DecodeJpegOptions } from "@jimp/js-jpeg";
 
-import type * as gw from 'gifwrap';
+import type gw from 'gifwrap';
+
 import type * as jf from 'jimp/fonts';
 import type * as jp from '@jimp/plugin-print';
 

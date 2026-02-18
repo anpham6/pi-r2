@@ -1,6 +1,6 @@
 import type { ITransformSeries } from '@e-mc/types/lib/document';
 
-import type * as svgo from 'svgo';
+import type svgo from 'svgo';
 
 import { ERR_MESSAGE } from '@e-mc/types/constant';
 

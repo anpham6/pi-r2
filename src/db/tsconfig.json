@@ -1,7 +1,8 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../build/redis/client"
+    "rootDir": "./redis",
+    "outDir": "../../build/redis"
   },
   "include": [
     "**/*.ts"

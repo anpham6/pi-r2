@@ -1,6 +1,6 @@
 import type { ITransformSeries, RawSourceMap } from '@e-mc/types/lib/document';
 
-import type * as cs from 'csso';
+import type cs from 'csso';
 
 import sm = require('source-map-js');
 

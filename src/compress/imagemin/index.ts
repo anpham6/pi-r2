@@ -30,7 +30,7 @@ interface ImageminModule extends CompressModule {
 
 type Plugin = (input: Uint8Array) => Promise<Uint8Array>;
 
-const PLUGIN_MAP: ObjectMap<FunctionType> = Object.freeze({
+const PLUGIN_MAP: ObjectMap<FunctionType<unknown, PlainObject | undefined>> = Object.freeze({
     'jpegtran': jpegtran,
     'imagemin-jpegtran': jpegtran,
     'mozjpeg': mozjpeg,

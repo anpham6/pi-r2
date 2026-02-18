@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "rootDir": "./jimp",
     "outDir": "../../build/jimp"
   },
   "include": [

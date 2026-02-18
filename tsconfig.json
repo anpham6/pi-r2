@@ -6,6 +6,21 @@
       "@pi-r/jimp": ["./src/module/jimp"],
       "@pi-r/jimp/*": ["./src/module/jimp/*"]
     },
+    "types": [
+      "bmp-js",
+      "clean-css",
+      "csso",
+      "html-minifier",
+      "html-minifier-terser",
+      "imagemin-gifsicle",
+      "imagemin-jpegtran",
+      "imagemin-mozjpeg",
+      "imagemin-pngquant",
+      "imagemin-webp",
+      "node",
+      "pngjs",
+      "uglify-js"
+    ],
     "newLine": "lf",
     "libReplacement": false,
     "inlineSourceMap": false,
@@ -22,6 +37,7 @@
     "useUnknownInCatchVariables": true,
     "allowUnreachableCode": false,
     "allowUmdGlobalAccess": false,
+    "esModuleInterop": true,
     "removeComments": true
   },
   "include": [

@@ -86,6 +86,7 @@
     "@types/node": "^24.10.12",
     "@types/pngjs": "*",
     "@types/uglify-js": "^3.17.5",
+    "@typescript-eslint/parser": "*",
     "eslint": "9.39.2",
     "file-type": "^20.5.0",
     "gifwrap": "*",
@@ -100,6 +101,6 @@
     "sqd-build": "^0.8.3",
     "sqd-eslint": "0.11.5",
     "svgo": "^4.0.0",
-    "typescript": "5.9.3"
+    "typescript": "^6.0.0-beta"
   }
 }

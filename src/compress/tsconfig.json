@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "rootDir": "./imagemin",
     "outDir": "../../build/imagemin"
   },
   "include": [

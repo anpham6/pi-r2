@@ -1,6 +1,6 @@
 import type { ITransformSeries, RawSourceMap } from '@e-mc/types/lib/document';
 
-import type * as cc from 'clean-css';
+import type cc from 'clean-css';
 
 function transform(context: typeof cc, value: string, options: ITransformSeries<cc.OptionsOutput>) {
     context = options.upgrade(context, __dirname);
