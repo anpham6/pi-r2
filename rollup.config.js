@@ -1,4 +1,4 @@
-module.exports = [
+export default [
     './publish/ibm/client/index.js',
     './publish/minio/client/index.js',
     './publish/minio/download/index.js',

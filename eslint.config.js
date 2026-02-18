@@ -1,7 +1,8 @@
-const sqd = require('sqd-eslint');
-const { defineConfig, globalIgnores } = require('eslint/config');
+import { defineConfig, globalIgnores } from 'eslint/config';
 
-module.exports = defineConfig(
+import * as sqd from 'sqd-eslint';
+
+export default defineConfig(
     globalIgnores([
         'build/',
         'publish/**/*.js'

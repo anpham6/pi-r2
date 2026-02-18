@@ -1,6 +1,7 @@
 {
   "name": "pi-r2",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "npm run build:cloud && npm run build:compres && npm run build:document && npm run build:module",
     "dev": "npm run build:dev && npm run copy:base",
@@ -43,7 +44,7 @@
     "clean:prod": "npm run clean && npx admin remove -E js -s publish"
   },
   "engines": {
-    "node": ">=18.20"
+    "node": ">=20"
   },
   "repository": {
     "type": "git",
@@ -88,6 +89,7 @@
     "@types/uglify-js": "^3.17.5",
     "@typescript-eslint/parser": "*",
     "eslint": "9.39.2",
+    "eslint-import-resolver-typescript": "4.4.4",
     "file-type": "^20.5.0",
     "gifwrap": "*",
     "ibm-cloud-sdk-core": "*",

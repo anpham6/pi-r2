@@ -888,7 +888,7 @@ class Jimp extends Image {
         return null;
     }
 
-    async using(data: IFileThread<ExternalAsset & WorkerAction>, command: string) {
+    async using(data: IFileThread<IFileManager, ExternalAsset & WorkerAction>, command: string) {
         if (this.aborted) {
             return createAbortError(true);
         }
