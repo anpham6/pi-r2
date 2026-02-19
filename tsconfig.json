@@ -7,11 +7,6 @@
       "csso",
       "html-minifier",
       "html-minifier-terser",
-      "imagemin-gifsicle",
-      "imagemin-jpegtran",
-      "imagemin-mozjpeg",
-      "imagemin-pngquant",
-      "imagemin-webp",
       "node",
       "uglify-js"
     ],

@@ -40,10 +40,6 @@ docker run -d --name redis --rm -p 6379:6379 \
 docker exec -it -e 'REDIS_KEY=["card:1", "card:2"]' -e 'REDIS_PATH=$.description' redis rundb
 ```
 
-## Compress
-
-* [@pi-r/imagemin](https://github.com/imagemin/imagemin) (worker)
-
 ## LICENSE
 
 MIT
