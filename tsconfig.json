@@ -2,12 +2,7 @@
   "compilerOptions": {
     "target": "es2022",
     "module": "preserve",
-    "paths": {
-      "@pi-r/jimp": ["./src/module/jimp"],
-      "@pi-r/jimp/*": ["./src/module/jimp/*"]
-    },
     "types": [
-      "bmp-js",
       "clean-css",
       "csso",
       "html-minifier",
@@ -18,7 +13,6 @@
       "imagemin-pngquant",
       "imagemin-webp",
       "node",
-      "pngjs",
       "uglify-js"
     ],
     "newLine": "lf",
