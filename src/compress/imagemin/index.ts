@@ -3,6 +3,8 @@ import type { MimeTypeAction } from '@e-mc/types/lib/squared';
 import type { ICompress } from '@e-mc/types/lib';
 import type { CompressModule } from '@e-mc/types/lib/settings';
 
+import type { Plugin } from 'imagemin';
+
 import { ERR_MESSAGE } from '@e-mc/types/constant';
 
 import jpegtran from 'imagemin-jpegtran';
@@ -10,7 +12,6 @@ import mozjpeg from 'imagemin-mozjpeg';
 import pngquant from 'imagemin-pngquant';
 import webp from 'imagemin-webp';
 import gifsicle from 'imagemin-gifsicle';
-// @ts-expect-error
 import svgo from 'imagemin-svgo';
 
 import { fileTypeFromBuffer } from 'file-type';
@@ -28,9 +29,7 @@ interface ImageminModule extends CompressModule {
     };
 }
 
-type Plugin = (input: Uint8Array) => Promise<Uint8Array>;
-
-const PLUGIN_MAP: ObjectMap<FunctionType> = Object.freeze({
+const PLUGIN_MAP: ObjectMap<FunctionType<Plugin, AnyObject | undefined>> = Object.freeze({
     'jpegtran': jpegtran,
     'imagemin-jpegtran': jpegtran,
     'mozjpeg': mozjpeg,
@@ -87,6 +86,6 @@ export default function compress(this: ICompress<ImageminModule> | undefined, op
         if (typeof transform !== 'function') {
             return Promise.reject(errorMessage('imagemin', ERR_MESSAGE.FUNCTION, plugin));
         }
-        return (transform(options || settings?.[plugin as "jpegtran"] || settings?.[plugin.replace(/^imagemin-/, '') as "jpegtran"]) as Plugin)(data);
+        return transform(options || settings?.[plugin as "jpegtran"] || settings?.[plugin.replace(/^imagemin-/, '') as "jpegtran"])(data);
     };
 }
