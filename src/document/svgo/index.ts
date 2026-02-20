@@ -4,7 +4,7 @@ import type svgo from 'svgo';
 
 import { ERR_MESSAGE } from '@e-mc/types/constant';
 
-import Document = require('@e-mc/document');
+import Document from '@e-mc/document';
 
 import { DomWriter } from '@e-mc/document/parse/dom';
 

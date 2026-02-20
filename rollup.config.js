@@ -1,5 +1,7 @@
 export default [
     './publish/ibm/client/index.js',
+    './publish/ibm/download/index.js',
+    './publish/ibm/upload/index.js',
     './publish/minio/client/index.js',
     './publish/minio/download/index.js',
     './publish/minio/upload/index.js'

@@ -7,9 +7,9 @@ import type { BucketItem, TagList } from 'minio';
 
 import { ERR_CLOUD, ERR_MESSAGE, SETTINGS_KEY_NAME as KEY_NAME, LOG_TYPE, VAL_CLOUD } from '@e-mc/types/constant';
 
-import minio = require('minio');
+import { Client } from 'minio';
 
-import Cloud = require('@e-mc/cloud');
+import Cloud from '@e-mc/cloud';
 
 import { isObject, isPlainObject, isString } from '@e-mc/types';
 
@@ -82,7 +82,7 @@ export function validateStorage(credential: MinIOStorageCredential, data?: Cloud
 
 export function createStorageClient(credential: MinIOStorageCredential) {
     credential.endPoint ||= 'localhost';
-    return new minio.Client(credential);
+    return new Client(credential);
 }
 
 export async function createBucket(this: IModule, credential: MinIOStorageCredential, bucketName: string, publicRead?: boolean) {

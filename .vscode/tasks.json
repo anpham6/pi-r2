@@ -14,7 +14,7 @@
         {
             "label": "npmDevBuild",
             "type": "shell",
-            "command": "npm run build"
+            "command": "npm run dev"
         }
     ]
 }

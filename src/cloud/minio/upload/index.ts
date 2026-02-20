@@ -12,19 +12,17 @@ import type { ItemBucketMetadata, LifecycleConfig, LockConfig } from 'minio';
 
 import { LOG_TYPE, TRANSFER_TYPE, VAL_CLOUD } from '@e-mc/types/constant';
 
-import path = require('node:path');
-import fs = require('node:fs');
-import crypto = require('node:crypto');
-import stream = require('node:stream');
+import path from 'node:path';
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import stream from 'node:stream';
 
-import Cloud = require('@e-mc/cloud');
+import Cloud from '@e-mc/cloud';
 
 import { createAbortError, isPlainObject } from '@e-mc/types';
 import { createErrorHandler, createKeyAndBody, generateFilename } from '@e-mc/cloud/util';
 
-import { MINIO } from '../client';
-
-import client = require('../client');
+import * as client from '../client';
 
 const BUCKET_SESSION = new Set<string>();
 const BUCKET_RESPONSE: ObjectMap<Promise<boolean>> = {};
@@ -177,7 +175,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
             }
             minio.putObject(bucketName, objectName, Stream.length > 0 ? Stream[i] : Body[i], Stream.length > 0 ? undefined : Body[i].byteLength, params)
                 .then(() => {
-                    const url = Cloud.joinPath(endpoint || Cloud.joinPath(MINIO.SERVER, bucketName), objectName);
+                    const url = Cloud.joinPath(endpoint || Cloud.joinPath(client.MINIO.SERVER, bucketName), objectName);
                     this.formatMessage(LOG_TYPE.CLOUD, service, VAL_CLOUD.UPLOAD_FILE, url, Cloud.optionsLogMessage('UPLOAD'));
                     if (first) {
                         let length = -1;

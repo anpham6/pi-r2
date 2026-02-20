@@ -14,12 +14,12 @@ import type { Document, PostPartitionAllDocsParams, PostPartitionFindParams } fr
 import { ERR_DB, ERR_MESSAGE, STATUS_TYPE } from '@e-mc/types/constant';
 import { HTTP_STATUS } from '@e-mc/types/lib/http';
 
-import ibm = require('ibm-cloud-sdk-core');
-import cloudant = require('@ibm-cloud/cloudant');
-import cloudant_v1 = require('@ibm-cloud/cloudant/cloudant/v1');
-import aws = require('@pi-r/aws');
+import ibm from 'ibm-cloud-sdk-core';
+import cloudant from '@ibm-cloud/cloudant';
+import cloudant_v1 from '@ibm-cloud/cloudant/cloudant/v1';
+import aws from '@pi-r/aws';
 
-import Cloud = require('@e-mc/cloud');
+import Cloud from '@e-mc/cloud';
 
 import { isArray, isString } from '@e-mc/types';
 import { formatError } from '@e-mc/cloud/util';

@@ -1,12 +1,10 @@
 import type { IModule } from '@e-mc/types/lib';
 
-import type { UploadHost } from '@e-mc/cloud/types';
-
 import type { IBMStorageCredential } from '../types';
 
-import client = require('../client');
+import aws from '@pi-r/aws/upload';
 
-const aws = require('@pi-r/aws/upload') as UploadHost;
+import * as client from '../client';
 
 function upload(this: IModule, credential: IBMStorageCredential, service = 'ibm') {
     client.setStorageCredential(credential);

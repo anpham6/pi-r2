@@ -1,12 +1,12 @@
 import type { IModule } from '@e-mc/types/lib';
 
-import type { DownloadCallback, DownloadHost } from '@e-mc/cloud/types';
+import type { DownloadCallback } from '@e-mc/cloud/types';
 
 import type { IBMStorageCredential } from '../types';
 
-import client = require('../client');
+import aws from '@pi-r/aws/download';
 
-const aws = require('@pi-r/aws/download') as DownloadHost;
+import * as client from '../client';
 
 function download(this: IModule, credential: IBMStorageCredential, service = 'ibm'): DownloadCallback {
     client.setStorageCredential(credential);

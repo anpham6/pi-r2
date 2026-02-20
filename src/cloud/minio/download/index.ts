@@ -7,14 +7,14 @@ import type { MinIOStorageCredential } from '../types';
 
 import type { RemoveOptions } from 'minio';
 
-import Cloud = require('@e-mc/cloud');
+import Cloud from '@e-mc/cloud';
 
 import { ERR_CLOUD, LOG_TYPE, VAL_CLOUD } from '@e-mc/types/constant';
 
 import { errorValue, isPlainObject } from '@e-mc/types';
 import { readableAsBuffer } from '@e-mc/cloud/util';
 
-import client = require('../client');
+import * as client from '../client';
 
 function download(this: IModule, credential: MinIOStorageCredential, service: string): DownloadCallback {
     const minio = client.createStorageClient(credential);
