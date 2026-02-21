@@ -1,10 +1,10 @@
-# Pi-r2 0.3
+# Pi-r2 0.4
 
-* NodeJS 18.20 LTS
+* NodeJS 20 (Minimum 18)
 * ES2022
 
 > [!CAUTION]
-> Unless otherwise noted any `@pi-r2` packages are unmaintained and untested. They are republished once with each **NodeJS LTS** and `@e-mc` turnover to sustain minimum compatibility.
+> Unless otherwise noted any `@pi-r2` packages are unmaintained and untested. They are republished once with each **NodeJS LTS** turnover to sustain minimum `@e-mc` compatibility.
 
 ## General Usage
 

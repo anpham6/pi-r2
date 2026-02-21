@@ -72,7 +72,7 @@
     "minio": "^8.0.6",
     "rollup": "^4.58.0",
     "source-map-js": "*",
-    "sqd-admin": "^0.19.5",
+    "sqd-admin": "^0.19.6",
     "sqd-build": "^0.8.3",
     "sqd-eslint": "0.11.5",
     "svgo": "^4.0.0",
