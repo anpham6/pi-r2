@@ -22,7 +22,7 @@ import Cloud from '@e-mc/cloud';
 import { createAbortError, isPlainObject } from '@e-mc/types';
 import { createErrorHandler, createKeyAndBody, generateFilename } from '@e-mc/cloud/util';
 
-import * as client from '../client';
+import { MINIO, createBucketV2, createStorageClient } from '../client';
 
 const BUCKET_SESSION = new Set<string>();
 const BUCKET_RESPONSE: ObjectMap<Promise<boolean>> = {};
@@ -30,7 +30,7 @@ const BUCKET_RESPONSE: ObjectMap<Promise<boolean>> = {};
 const getBucketKey = (credential: unknown, bucket: string, acl = '') => Cloud.asString(credential, true) + bucket + '_' + acl;
 
 function upload(this: IModule, credential: MinIOStorageCredential, service: string): UploadCallback {
-    const minio = client.createStorageClient(credential);
+    const minio = createStorageClient(credential);
     return async (data: UploadData<ItemBucketMetadata, ObjectCannedACL, unknown, MinIOPolicyType, LockConfig, unknown, LifecycleConfig>, callback) => {
         const { bucket: bucketName, localUri } = data;
         const { pathname, flags = 0, fileGroup, contentType, metadata = {}, tags, endpoint, active, acl, publicRead, admin = {}, overwrite, options } = data.upload;
@@ -49,7 +49,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
         const addLog = createErrorHandler(this, service, bucketName);
         if (!BUCKET_SESSION.has(bucketName)) {
             const bucketAcl = admin.publicRead ? 'public-read' : admin.acl;
-            const response = BUCKET_RESPONSE[bucketKey = getBucketKey(credential, bucketName, bucketAcl)] ||= client.createBucketV2.call(this, credential, bucketName, bucketAcl);
+            const response = BUCKET_RESPONSE[bucketKey = getBucketKey(credential, bucketName, bucketAcl)] ||= createBucketV2.call(this, credential, bucketName, bucketAcl);
             if (!await response) {
                 errorResponse(null);
                 return;
@@ -175,7 +175,7 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
             }
             minio.putObject(bucketName, objectName, Stream.length > 0 ? Stream[i] : Body[i], Stream.length > 0 ? undefined : Body[i].byteLength, params)
                 .then(() => {
-                    const url = Cloud.joinPath(endpoint || Cloud.joinPath(client.MINIO.SERVER, bucketName), objectName);
+                    const url = Cloud.joinPath(endpoint || Cloud.joinPath(MINIO.SERVER, bucketName), objectName);
                     this.formatMessage(LOG_TYPE.CLOUD, service, VAL_CLOUD.UPLOAD_FILE, url, Cloud.optionsLogMessage('UPLOAD'));
                     if (first) {
                         let length = -1;

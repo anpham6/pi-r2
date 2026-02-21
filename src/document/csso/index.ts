@@ -2,7 +2,7 @@ import type { ITransformSeries, RawSourceMap } from '@e-mc/types/lib/document';
 
 import type cs from 'csso';
 
-import sm = require('source-map-js');
+import { SourceMapConsumer, type SourceMapGenerator } from 'source-map-js';
 
 function transform(context: typeof cs, value: string, options: ITransformSeries<cs.MinifyOptions>) {
     context = options.upgrade(context, __dirname);
@@ -20,7 +20,7 @@ function transform(context: typeof cs, value: string, options: ITransformSeries<
         if (result.map) {
             try {
                 if (map) {
-                    (result.map as sm.SourceMapGenerator).applySourceMap(new sm.SourceMapConsumer(map), baseConfig.filename || 'unknown');
+                    (result.map as SourceMapGenerator).applySourceMap(new SourceMapConsumer(map), baseConfig.filename || 'unknown');
                 }
                 sourceMap.nextMap('csso', result.css, result.map.toString(), baseConfig.filename); // eslint-disable-line @typescript-eslint/no-base-to-string
             }

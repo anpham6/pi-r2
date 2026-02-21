@@ -6,10 +6,10 @@ import type { IBMStorageCredential } from '../types';
 
 import aws from '@pi-r/aws/download';
 
-import * as client from '../client';
+import { setStorageCredential } from '../client';
 
 function download(this: IModule, credential: IBMStorageCredential, service = 'ibm'): DownloadCallback {
-    client.setStorageCredential(credential);
+    setStorageCredential(credential);
     return aws.call(this, credential, service, 'ibm-cos-sdk/clients/s3');
 }
 

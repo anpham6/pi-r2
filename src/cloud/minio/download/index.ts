@@ -14,10 +14,10 @@ import { ERR_CLOUD, LOG_TYPE, VAL_CLOUD } from '@e-mc/types/constant';
 import { errorValue, isPlainObject } from '@e-mc/types';
 import { readableAsBuffer } from '@e-mc/cloud/util';
 
-import * as client from '../client';
+import { createStorageClient } from '../client';
 
 function download(this: IModule, credential: MinIOStorageCredential, service: string): DownloadCallback {
-    const minio = client.createStorageClient(credential);
+    const minio = createStorageClient(credential);
     return (data: DownloadData<RemoveOptions>, callback) => {
         const { bucket: bucketName, download: target } = data;
         const filename = target.keyname || target.filename;
