@@ -1,6 +1,5 @@
 import type { IModule } from '@e-mc/types/lib';
 import type { UploadData } from '@e-mc/types/lib/cloud';
-import type { ErrorCode } from '@e-mc/types/lib/node';
 
 import type { UploadCallback } from '@e-mc/cloud/types';
 
@@ -19,7 +18,7 @@ import stream from 'node:stream';
 
 import Cloud from '@e-mc/cloud';
 
-import { createAbortError, isPlainObject } from '@e-mc/types';
+import { createAbortError, isErrorCode, isPlainObject } from '@e-mc/types';
 import { createErrorHandler, createKeyAndBody, generateFilename } from '@e-mc/cloud/util';
 
 import { MINIO, createBucketV2, createStorageClient } from '../client';
@@ -101,9 +100,8 @@ function upload(this: IModule, credential: MinIOStorageCredential, service: stri
                 exists = await minio.statObject(bucketName, Cloud.joinPath(pathname, filename))
                     .then(() => true)
                     .catch((err: unknown) => {
-                        if (err instanceof Error && (err as ErrorCode).code !== 'NotFound') {
+                        if (!isErrorCode(err, 'NotFound')) {
                             filename = crypto.randomUUID() + path.extname(current);
-                            return true;
                         }
                         return false;
                     });

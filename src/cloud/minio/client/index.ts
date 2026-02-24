@@ -235,17 +235,13 @@ export async function setBucketTagging(this: IModule, credential: MinIOStorageCr
         });
 }
 
-export async function deleteObjects(this: IModule, credential: MinIOStorageCredential, bucketName: string) {
-    return deleteObjectsV2.call(this, credential, bucketName, true);
-}
-
-export async function deleteObjectsV2(this: IModule, credential: MinIOStorageCredential, bucketName: string, recursive = true) {
+export async function deleteObjects(this: IModule, credential: MinIOStorageCredential, bucketName: string, options = {} as { recursive: boolean }) {
     const client = createStorageClient(credential);
     return new Promise<void>((resolve, reject) => {
         client.bucketExists(bucketName)
             .then(exists => {
                 if (exists) {
-                    const stream = client.listObjectsV2(bucketName, '', recursive);
+                    const stream = client.listObjectsV2(bucketName, '', options.recursive);
                     const items: BucketItem[] = [];
                     stream.on('data', item => {
                         items.push(item);
@@ -266,6 +262,10 @@ export async function deleteObjectsV2(this: IModule, credential: MinIOStorageCre
             })
             .catch(reject);
     });
+}
+
+export async function deleteObjectsV2(this: IModule, credential: MinIOStorageCredential, bucketName: string, recursive = true) {
+    return deleteObjects.call(this, credential, bucketName, { recursive });
 }
 
 export const CLOUD_UPLOAD_STREAM = true;

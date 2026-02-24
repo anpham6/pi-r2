@@ -138,8 +138,8 @@ export async function setBucketWebsite(this: IModule, credential: IBMStorageCred
     return aws.setBucketWebsite.call(this, credential, bucket, options, STRINGS.SERVICE, STRINGS.SDK);
 }
 
-export async function deleteObjects(this: IModule, credential: IBMStorageCredential, Bucket: string, service?: string, sdk?: string, recursive = true) {
-    return deleteObjectsV2.call(this, credential, Bucket, recursive);
+export async function deleteObjects(this: IModule, credential: IBMStorageCredential, Bucket: string, options?: aws.ListObjectsRequest) {
+    return deleteObjectsV3.call(this, credential, Bucket, options);
 }
 
 export async function deleteObjectsV2(this: IModule, credential: IBMStorageCredential, Bucket: string, recursive = true) {
