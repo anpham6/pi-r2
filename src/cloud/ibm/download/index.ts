@@ -8,9 +8,7 @@ import aws from '@pi-r/aws/download';
 
 import { setStorageCredential } from '../client';
 
-function download(this: IModule, credential: IBMStorageCredential, service = 'ibm'): DownloadCallback {
+export default function download(this: IModule, credential: IBMStorageCredential, service = 'ibm'): DownloadCallback {
     setStorageCredential(credential);
     return aws.call(this, credential, service, 'ibm-cos-sdk/clients/s3');
 }
-
-export = download;

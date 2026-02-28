@@ -2,7 +2,6 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "build",
-    "target": "es2022",
     "composite": true,
     "incremental": true,
     "noUnusedLocals": false

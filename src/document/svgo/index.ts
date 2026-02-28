@@ -1,6 +1,6 @@
 import type { ITransformSeries } from '@e-mc/types/lib/document';
 
-import type svgo from 'svgo';
+import type * as svgo from 'svgo';
 
 import { ERR_MESSAGE } from '@e-mc/types/constant';
 
@@ -15,7 +15,7 @@ interface CustomPlugin {
     fn?: svgo.Plugin<void> | string;
 }
 
-function transform(context: typeof svgo, value: string, options: ITransformSeries<svgo.Config>) {
+export default function transform(context: typeof svgo, value: string, options: ITransformSeries<svgo.Config>) {
     context = options.upgrade(context, __dirname);
     const baseConfig = options.toBaseConfig();
     const plugins = baseConfig.plugins;
@@ -65,5 +65,3 @@ function transform(context: typeof svgo, value: string, options: ITransformSerie
     }
     return context.optimize(value, baseConfig).data;
 }
-
-export = transform;

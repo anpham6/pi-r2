@@ -4,7 +4,7 @@ import type cs from 'csso';
 
 import { SourceMapConsumer, type SourceMapGenerator } from 'source-map-js';
 
-function transform(context: typeof cs, value: string, options: ITransformSeries<cs.MinifyOptions>) {
+export default function transform(context: typeof cs, value: string, options: ITransformSeries<cs.MinifyOptions>) {
     context = options.upgrade(context, __dirname);
     const sourceMap = options.sourceMap;
     const baseConfig = options.toBaseConfig();
@@ -32,5 +32,3 @@ function transform(context: typeof cs, value: string, options: ITransformSeries<
         return result.css;
     }
 }
-
-export = transform;

@@ -16,7 +16,7 @@ import { readableAsBuffer } from '@e-mc/cloud/util';
 
 import { createStorageClient } from '../client';
 
-function download(this: IModule, credential: MinIOStorageCredential, service: string): DownloadCallback {
+export default function download(this: IModule, credential: MinIOStorageCredential, service: string): DownloadCallback {
     const minio = createStorageClient(credential);
     return (data: DownloadData<RemoveOptions>, callback) => {
         const { bucket: bucketName, download: target } = data;
@@ -46,5 +46,3 @@ function download(this: IModule, credential: MinIOStorageCredential, service: st
             .catch(callback);
     };
 }
-
-export = download;

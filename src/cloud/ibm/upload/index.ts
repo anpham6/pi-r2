@@ -6,9 +6,7 @@ import aws from '@pi-r/aws/upload';
 
 import { setStorageCredential } from '../client';
 
-function upload(this: IModule, credential: IBMStorageCredential, service = 'ibm') {
+export default function upload(this: IModule, credential: IBMStorageCredential, service = 'ibm') {
     setStorageCredential(credential);
     return aws.call(this, credential, service, 'ibm-cos-sdk/clients/s3');
 }
-
-export = upload;

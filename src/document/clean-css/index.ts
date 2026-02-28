@@ -2,7 +2,7 @@ import type { ITransformSeries, RawSourceMap } from '@e-mc/types/lib/document';
 
 import type cc from 'clean-css';
 
-function transform(context: typeof cc, value: string, options: ITransformSeries<cc.OptionsOutput>) {
+export default function transform(context: typeof cc, value: string, options: ITransformSeries<cc.OptionsOutput>) {
     context = options.upgrade(context, __dirname);
     const sourceMap = options.sourceMap;
     const baseConfig = options.toBaseConfig();
@@ -21,5 +21,3 @@ function transform(context: typeof cc, value: string, options: ITransformSeries<
         return result.styles;
     }
 }
-
-export = transform;
