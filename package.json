@@ -76,6 +76,6 @@
     "sqd-build": "^0.8.3",
     "sqd-eslint": "0.12.0",
     "svgo": "^4.0.0",
-    "typescript": "^6.0.0-beta"
+    "typescript": "^6.0.1-rc"
   }
 }
