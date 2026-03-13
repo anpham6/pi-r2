@@ -1,20 +1,20 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "npmOutdated",
-            "type": "shell",
-            "command": "npm outdated"
-        },
-        {
-            "label": "npmPrune",
-            "type": "shell",
-            "command": "npm prune"
-        },
-        {
-            "label": "npmDevBuild",
-            "type": "shell",
-            "command": "npm run dev"
-        }
-    ]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npmOutdated",
+      "type": "shell",
+      "command": "npm outdated"
+    },
+    {
+      "label": "npmPrune",
+      "type": "shell",
+      "command": "npm prune"
+    },
+    {
+      "label": "npmDevBuild",
+      "type": "shell",
+      "command": "npm run dev"
+    }
+  ]
 }
