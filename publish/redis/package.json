@@ -1,6 +1,6 @@
 {
   "name": "@pi-r/redis",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "description": "Redis client driver for E-mc.",
   "main": "client/index.js",
   "types": "client/index.d.ts",
@@ -20,8 +20,8 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r#readme",
   "dependencies": {
-    "@e-mc/db": "^0.13.8",
-    "@e-mc/types": "^0.13.8",
+    "@e-mc/db": "^0.13.9",
+    "@e-mc/types": "^0.13.9",
     "redis": "^5.11.0"
   }
 }
