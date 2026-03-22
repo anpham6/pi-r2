@@ -11,7 +11,6 @@
       "uglify-js"
     ],
     "newLine": "lf",
-    "libReplacement": false,
     "inlineSourceMap": false,
     "noUnusedLocals": true,
     "preserveConstEnums": false,
@@ -26,7 +25,6 @@
     "useUnknownInCatchVariables": true,
     "allowUnreachableCode": false,
     "allowUmdGlobalAccess": false,
-    "esModuleInterop": true,
     "removeComments": true
   },
   "include": [
