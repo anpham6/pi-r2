@@ -32,7 +32,7 @@ export default function upload(this: IModule, credential: MinIOStorageCredential
     const minio = createStorageClient(credential);
     return async (data: UploadData<ItemBucketMetadata, ObjectCannedACL, unknown, MinIOPolicyType, LockConfig, unknown, LifecycleConfig>, callback) => {
         const { bucket: bucketName, localUri } = data;
-        const { pathname, flags = 0, fileGroup, contentType, metadata = {}, tags, endpoint, active, acl, publicRead, admin = {}, overwrite, options } = data.upload;
+        const { pathname, flags = 0, fileGroup, descendantsGroup, contentType, metadata = {}, tags, endpoint, active, acl, publicRead, admin = {}, overwrite, options } = data.upload;
         let filename = data.upload.filename || path.basename(localUri),
             bucketKey: string | undefined;
         const cleanup = () => {
@@ -119,7 +119,7 @@ export default function upload(this: IModule, credential: MinIOStorageCredential
             try {
                 Stream.push(data.buffer.length ? stream.Readable.from(data.buffer) : fs.createReadStream(localUri, { signal: this.signal }));
                 if (fileGroup) {
-                    const [key, body, type] = createKeyAndBody<Readable>(filename, fileGroup, 0, addLog, TRANSFER_TYPE.STREAM);
+                    const [key, body, type] = createKeyAndBody<Readable>(filename, fileGroup, { errorCallback: addLog, descendantsGroup, flags: TRANSFER_TYPE.STREAM });
                     Key.push(...key);
                     Stream.push(...body);
                     ContentType.push(...type);
@@ -133,7 +133,7 @@ export default function upload(this: IModule, credential: MinIOStorageCredential
         else {
             Body.push(data.buffer);
             if (fileGroup) {
-                const [key, body, type] = createKeyAndBody(filename, fileGroup, 0, addLog);
+                const [key, body, type] = createKeyAndBody(filename, fileGroup, { errorCallback: addLog, descendantsGroup });
                 Key.push(...key);
                 Body.push(...body);
                 ContentType.push(...type);
