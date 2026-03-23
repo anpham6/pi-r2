@@ -7,8 +7,7 @@ import { ERR_MESSAGE } from '@e-mc/types/constant';
 import Document from '@e-mc/document';
 
 import { DomWriter } from '@e-mc/document/parse/dom';
-
-import { isPlainObject, isString } from '@e-mc/types';
+import { isPlainObject } from '@e-mc/document/util';
 
 interface CustomPlugin {
     name: string;
@@ -22,8 +21,8 @@ export default function transform(context: typeof svgo, value: string, options: 
     if (Array.isArray(plugins)) {
         for (let i = 0; i < plugins.length; ++i) {
             const item = plugins[i];
-            if (isPlainObject<CustomPlugin>(item) && isString(item.fn)) {
-                const fn = Document.parseFunction(item.fn, { absolute: true, external: true });
+            if (isPlainObject<CustomPlugin>(item) && item.fn) {
+                const fn = Document.parseFunction(item.fn, { absolute: true, external: true, default: true });
                 if (fn) {
                     item.fn = fn as svgo.Plugin<void>;
                 }

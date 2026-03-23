@@ -20,7 +20,6 @@
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
     "@e-mc/document": "^0.13.9",
-    "@e-mc/types": "^0.13.9",
     "svgo": "^4.0.1"
   }
 }
