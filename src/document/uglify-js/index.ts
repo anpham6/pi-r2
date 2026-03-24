@@ -1,6 +1,6 @@
 import type { ITransformSeries } from '@e-mc/types/lib/document';
 
-import type uglify from 'uglify-js';
+import type * as uglify from 'uglify-js';
 
 import { isObject, removeInternalProperties } from '@e-mc/document/util';
 

@@ -20,7 +20,7 @@ export default function transform(context: typeof svgo, value: string, options: 
     const plugins = baseConfig.plugins;
     if (Array.isArray(plugins)) {
         for (let i = 0; i < plugins.length; ++i) {
-            const item = plugins[i];
+            const item = plugins[i] as unknown;
             if (isPlainObject<CustomPlugin>(item) && item.fn) {
                 const fn = Document.parseFunction(item.fn, { absolute: true, external: true, default: true });
                 if (fn) {
@@ -28,7 +28,7 @@ export default function transform(context: typeof svgo, value: string, options: 
                 }
                 else {
                     plugins.splice(i--, 1);
-                    options.addLog(options.logType.PROCESS, ERR_MESSAGE.FUNCTION + ` (${item.fn})`, { source: 'svgo' });
+                    options.addLog(options.logType.PROCESS, ERR_MESSAGE.FUNCTION + (typeof item.fn === 'string' ? ` (${item.fn})` : ''), { source: 'svgo' });
                 }
             }
         }
