@@ -14,7 +14,7 @@
 
 * [@pi-r2/clean-css](https://github.com/jakubpawlowicz/clean-css)
 * [@pi-r2/csso](https://github.com/css/csso)
-* [@pi-r2/html-minifier](https://github.com/kangax/html-minifier)
+* [@pi-r2/html-minifier](https://github.com/j9t/html-minifier-next)
 * [@pi-r2/html-minifier-terser](https://github.com/DanielRuf/html-minifier-terser)
 * [@pi-r2/svgo](https://github.com/svg/svgo)
 * [@pi-r2/uglify-js](https://github.com/mishoo/UglifyJS)
