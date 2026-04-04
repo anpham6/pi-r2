@@ -12,21 +12,19 @@ export default defineConfig(
     ...sqd.configs['pi-r'],
     ...sqd.configs.imports,
     {
-        files: ['**/*.ts'],
-        rules: {
-            'import/no-duplicates': 'off',
-        }
-    },
-    {
-        files: ['src/compress/imagemin/*.ts'],
-        rules: {
-            'import/no-unresolved': 'off',
-        }
-    },
-    {
-        files: ['src/cloud/minio/**/*.ts'],
+        files: [
+            'src/cloud/minio/**/*.ts'
+        ],
         rules: {
             '@typescript-eslint/no-confusing-void-expression': 'off'
+        }
+    },
+    {
+        files: [
+            'src/document/csso/index.ts'
+        ],
+        rules: {
+            '@typescript-eslint/no-base-to-string': 'off'
         }
     }
 );

@@ -22,7 +22,7 @@ export default function transform(context: typeof cs, value: string, options: IT
                 if (map) {
                     (result.map as SourceMapGenerator).applySourceMap(new SourceMapConsumer(map), baseConfig.filename || 'unknown');
                 }
-                sourceMap.nextMap('csso', result.css, result.map.toString(), baseConfig.filename); // eslint-disable-line @typescript-eslint/no-base-to-string
+                sourceMap.nextMap('csso', result.css, result.map.toString(), baseConfig.filename);
             }
             catch (err) {
                 options.addLog(options.statusType.ERROR, err, { source: options.packageName });
