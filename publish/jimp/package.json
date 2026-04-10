@@ -20,12 +20,12 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/core": "^0.13.9",
-    "@e-mc/image": "^0.13.9",
-    "@e-mc/types": "^0.13.9",
+    "@e-mc/core": "^0.13.10",
+    "@e-mc/image": "^0.13.10",
+    "@e-mc/types": "^0.13.10",
     "@jimp/utils": "^1.6.0",
     "bmp-js": "^0.1.0",
     "gifwrap": "^0.10.1",
-    "jimp": "^1.6.0"
+    "jimp": "1.6.0"
   }
 }

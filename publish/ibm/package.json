@@ -19,12 +19,12 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/cloud": "^0.13.9",
-    "@e-mc/module": "^0.13.9",
-    "@e-mc/types": "^0.13.9",
+    "@e-mc/cloud": "^0.13.10",
+    "@e-mc/module": "^0.13.10",
+    "@e-mc/types": "^0.13.10",
     "@pi-r/aws": "^0.11.2",
-    "@ibm-cloud/cloudant": "^0.12.16",
-    "ibm-cloud-sdk-core": "^5.4.9",
+    "@ibm-cloud/cloudant": "^0.12.17",
+    "ibm-cloud-sdk-core": "^5.4.10",
     "ibm-cos-sdk": "^1.15.0"
   }
 }
