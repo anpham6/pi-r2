@@ -1,7 +1,7 @@
 {
-  "name": "@pi-r2/html-minifier",
+  "name": "@pi-r2/html-minifier-next",
   "version": "0.3.0",
-  "description": "html-minifier transform function for E-mc.",
+  "description": "html-minifier-next transform function for E-mc.",
   "main": "index.js",
   "publishConfig": {
     "access": "public"
@@ -9,7 +9,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/anpham6/pi-r2.git",
-    "directory": "src/documemt/html-minifier"
+    "directory": "src/documemt/html-minifier-next"
   },
   "keywords": [
     "squared",
@@ -19,6 +19,6 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "html-minifier-next": "^5.2.2"
+    "html-minifier-next": "^6.1.2"
   }
 }

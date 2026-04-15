@@ -1,7 +1,7 @@
 export default [
     './publish/clean-css/index.js',
     './publish/csso/index.js',
-    './publish/html-minifier/index.js',
+    './publish/html-minifier-next/index.js',
     './publish/html-minifier-terser/index.js',
     './publish/ibm/client/index.js',
     './publish/ibm/download/index.js',
