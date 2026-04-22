@@ -41,8 +41,8 @@ export default function transform(context: typeof svgo, value: string, options: 
             const svg: string[] = [];
             let lastIndex = 0;
             for (const item of DomWriter.getElementsByTagName('svg', element, true)) {
-                segments.push(value.substring(lastIndex, item.startIndex!));
-                svg.push(value.substring(item.startIndex!, lastIndex = item.endIndex! + 1));
+                segments.push(value.slice(lastIndex, item.startIndex!));
+                svg.push(value.slice(item.startIndex!, lastIndex = item.endIndex! + 1));
             }
             if (svg.length > 0) {
                 let source = '';
@@ -57,7 +57,7 @@ export default function transform(context: typeof svgo, value: string, options: 
                     source += segments.shift()! + (data || seg);
                 }
                 while (svg.length > 0);
-                return source + value.substring(lastIndex);
+                return source + value.slice(lastIndex);
             }
         }
         return value;
