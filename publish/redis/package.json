@@ -1,6 +1,6 @@
 {
   "name": "@pi-r/redis",
-  "version": "0.11.2",
+  "version": "0.11.3",
   "description": "Redis client driver for E-mc.",
   "main": "client/index.js",
   "types": "client/index.d.ts",
@@ -22,6 +22,6 @@
   "dependencies": {
     "@e-mc/db": "^0.13.10",
     "@e-mc/types": "^0.13.10",
-    "redis": "^5.11.0"
+    "redis": "^5.12.1"
   }
 }
