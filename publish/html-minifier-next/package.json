@@ -19,6 +19,6 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "html-minifier-next": "^6.1.2"
+    "html-minifier-next": "^6.2.0"
   }
 }
