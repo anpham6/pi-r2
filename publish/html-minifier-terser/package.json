@@ -1,6 +1,6 @@
 {
   "name": "@pi-r2/html-minifier-terser",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "HTMLMinifier transform function for E-mc.",
   "main": "index.js",
   "publishConfig": {

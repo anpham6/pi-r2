@@ -1,6 +1,6 @@
 {
   "name": "@pi-r2/clean-css",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "clean-css transform function for E-mc.",
   "main": "index.js",
   "publishConfig": {
