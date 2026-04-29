@@ -19,7 +19,7 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/document": "^0.13.10",
+    "@e-mc/document": "^0.14.0",
     "uglify-js": "^3.19.3"
   }
 }
