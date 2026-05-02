@@ -212,7 +212,7 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
     }
     for (let i = 0; i < length; ++i) {
         const item = batch[i];
-        const { source, key, format = 'HASH', search, aggregate, streams, options: clientOptions = {}, ignoreCache } = item;
+        const { source, key, search, aggregate, streams, options: clientOptions = {}, ignoreCache } = item;
         let credential = (redisCredential || onceCredential) as DbPoolCredential | undefined,
             error: unknown;
         if (!credential && !isPlainObject<DbPoolCredential>(credential = clientOptions.client!) && (error = errorMessage(source, ERR_DB.CREDENTIALS)) || !(isString(key) || isArray(key) || isPlainObject(search) && (isPlainObject(search.schema) || isString(search.query)) || isPlainObject(aggregate) && (isPlainObject(aggregate.schema) || isString(aggregate.query))) && (error = errorMessage(source, ERR_DB.QUERY, item.uri))) {
@@ -235,6 +235,7 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
         const uuidKey = credential.uuidKey ||= ((onceCredential ? batch[0] : item).credential as RedisCredential | undefined)?.uuidKey;
         const targetObject = typeof checkObject === 'string' ? this.hasCoerce(STRINGS.MODULE_NAME, 'options', uuidKey) && asFunction(checkObject) : checkObject;
         const cacheValue = ignoreCache === undefined ? sessionKey : Array.isArray(ignoreCache) ? { sessionKey, exclusiveOf: ignoreCache } as CacheOptions : { sessionKey, renewCache: ignoreCache === 0 } as CacheOptions;
+        const format = (key ? item.format?.toUpperCase() || 'HASH' : undefined) as RedisDataSource["format"];
         let queryString = '',
             rows: QueryResult | undefined;
         if (caching && ignoreCache !== true) {
@@ -247,14 +248,11 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
             else if (streams) {
                 queryString = Db.asString(streams, true);
             }
-            else if (!targetObject) {
-                queryString = Db.asString(key, true);
-            }
-            else if (item.cacheObjectKey) {
-                queryString = Db.asString(key, true) + '_' + targetObject.toString() + item.cacheObjectKey;
-            }
-            if (queryString) {
-                queryString += '_' + format;
+            else if (key) {
+                queryString = Db.asString(key, true) + '_' + format!;
+                if (targetObject && typeof item.cacheObjectKey === 'string') {
+                    queryString += '_' + targetObject.toString() + item.cacheObjectKey;
+                }
             }
             if (ignoreCache !== 1) {
                 rows = this.getQueryResult(source, DbPool.sanitize(credential), queryString, cacheValue);
@@ -592,7 +590,7 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                 else if (key) {
                     let data: unknown;
                     if (Array.isArray(key)) {
-                        switch (format.toUpperCase()) {
+                        switch (format) {
                             case 'HKEYS':
                                 data = await Promise.all(key.map(async k => client.hKeys(k)));
                                 break;
@@ -614,7 +612,7 @@ export async function executeBatchQuery(this: IDb, batch: RedisDataSource[], opt
                         }
                     }
                     else {
-                        switch (format.toUpperCase()) {
+                        switch (format) {
                             case 'HKEYS':
                                 data = await client.hKeys(key);
                                 break;
