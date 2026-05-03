@@ -10,7 +10,6 @@ export default defineConfig(
     ...sqd.configs.base,
     ...sqd.configs.nodejs,
     ...sqd.configs['pi-r'],
-    ...sqd.configs.imports,
     {
         files: [
             'src/cloud/minio/**/*.ts'
