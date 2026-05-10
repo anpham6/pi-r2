@@ -1,6 +1,6 @@
 {
   "name": "@pi-r2/jimp",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Jimp V1 image constructor for E-mc.",
   "main": "index.js",
   "types": "index.d.ts",
@@ -26,6 +26,6 @@
     "@jimp/utils": "^1.6.0",
     "bmp-js": "^0.1.0",
     "gifwrap": "^0.10.1",
-    "jimp": "^1.6.0"
+    "jimp": "1.6.0"
   }
 }

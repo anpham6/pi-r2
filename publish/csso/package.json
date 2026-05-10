@@ -1,6 +1,6 @@
 {
   "name": "@pi-r2/csso",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "CSSO transform function for E-mc.",
   "main": "index.js",
   "publishConfig": {
