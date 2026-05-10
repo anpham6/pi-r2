@@ -1,11 +1,11 @@
 {
   "name": "@pi-r2/csso",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "CSSO transform function for E-mc.",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/anpham6/pi-r.git",
+    "url": "git+https://github.com/anpham6/pi-r2.git",
     "directory": "src/document/csso"
   },
   "keywords": [
@@ -14,7 +14,7 @@
   ],
   "author": "An Pham <anpham6@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/anpham6/pi-r#readme",
+  "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
     "csso": "^5.0.5",
     "source-map-js": "1.0.2"
