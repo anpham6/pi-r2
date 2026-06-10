@@ -1,6 +1,6 @@
 {
   "name": "@pi-r2/minio",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "Minio storage functions for E-mc.",
   "main": "client/index.js",
   "repository": {
@@ -16,9 +16,9 @@
   "license": "MIT",
   "homepage": "https://github.com/anpham6/pi-r2#readme",
   "dependencies": {
-    "@e-mc/cloud": "^0.14.0",
-    "@e-mc/module": "^0.14.0",
-    "@e-mc/types": "^0.14.0",
+    "@e-mc/cloud": "^0.14.3",
+    "@e-mc/module": "^0.14.3",
+    "@e-mc/types": "^0.14.3",
     "minio": "^8.0.7"
   }
 }
